@@ -18,7 +18,7 @@ setup(name='omnisci-olio',
     install_requires=[
         "pandas",
         "pymapd",
-        # "ibis-framework >= 1.2",
-        "ibis-framework @ git+git://github.com/ibis-project/ibis.git@72ece317337fb7d329337f20db930845a669ce85#egg=ibis-framework",
+        "ibis-framework",
+        # "ibis-framework @ git+git://github.com/ibis-project/ibis.git@72ece317337fb7d329337f20db930845a669ce85#egg=ibis-framework",
     ]
 )
