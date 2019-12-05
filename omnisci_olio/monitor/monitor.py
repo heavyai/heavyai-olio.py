@@ -17,6 +17,7 @@ from time import sleep
 import ibis.omniscidb
 import ibis
 import omnisci_olio.pymapd
+import omnisci_olio.ibis
 
 
 import logging
@@ -115,7 +116,7 @@ def all_metrics(con):
     for k, v in s.items():
         df[k] = v
     
-    db = omnisci_olio.pymapd.db_memory(con.con, detail=0)
+    db = omnisci_olio.ibis.db_memory(con.con, detail=0)
 
     for i, row in db.iterrows():
         df['db_' + row.device_type + '_mem_alloc_kb'] = int(row.page_size * row.pages_allocated / 1024)
@@ -168,7 +169,8 @@ def monitor_import(sleep_seconds=1, batch=100, tgt_file=None):
                 except Exception as e:
                     errors += 1
                     if errors >= 10:
-                        print('Failed to insert metrics: ' + df.to_csv(), file=sys.stderr)
+                        if df:
+                            print('Failed to insert metrics: ' + df.to_csv(), file=sys.stderr)
                         raise
                     print(f'Continuing after load error: {e} {df}', file=sys.stderr)
                     break # break from the inner while, to re-connect with src

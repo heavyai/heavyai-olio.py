@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='omnisci-olio',
-    version='0.1.0',
+    version='0.1.0-dev0',
     description='OmniSci DB: Python functions using Pymapd, Ibis and integration with various tools and datasets',
     author='Mike Hinchey',
     author_email='mike.hinchey@omnisci.com',
