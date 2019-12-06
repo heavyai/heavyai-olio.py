@@ -160,19 +160,24 @@ def connect(url=None,
 
 
 def connect_session():
-    sessionid = json.loads(open('{0}/.jupyterscratch/.omniscisession'.format(Path.home()), 'r').read()).get('session', 'invalid')
-    bin_cert_validate = os.environ.get('OMNISCI_BINARY_TLS_VALIDATE', None)
-    if bin_cert_validate is not None:
-        bin_cert_validate = True if bin_cert_validate.lower() == 'true' else False
-    con = OmniSciIbisClient(
-        session_id=sessionid,
-        host=os.environ.get('OMNISCI_HOST'),
-        port=os.environ.get('OMNISCI_PORT'),
-        protocol=os.environ.get('OMNISCI_PROTOCOL'),
-        bin_cert_validate=bin_cert_validate,
-        bin_ca_certs=os.environ.get('OMNISCI_BINARY_TLS_CACERTS', None),
-    )
-    return con
+    session_path = '{0}/.jupyterscratch/.omniscisession'.format(Path.home())
+    if os.path.exists(session_path):
+        sessionid = json.loads(open(session_path, 'r').read()).get('session', 'invalid')
+        bin_cert_validate = os.environ.get('OMNISCI_BINARY_TLS_VALIDATE', None)
+        if bin_cert_validate is not None:
+            bin_cert_validate = True if bin_cert_validate.lower() == 'true' else False
+        return OmniSciIbisClient(
+            session_id=sessionid,
+            host=os.environ.get('OMNISCI_HOST'),
+            port=os.environ.get('OMNISCI_PORT'),
+            protocol=os.environ.get('OMNISCI_PROTOCOL'),
+            bin_cert_validate=bin_cert_validate,
+            bin_ca_certs=os.environ.get('OMNISCI_BINARY_TLS_CACERTS', None),
+        )
+    elif 'OMNISCI_DB_URL' in os.environ:
+        return connect()
+    else:
+        raise Exception('Unable to connect automatically. No .omniscisession file found, no OMNISCI_DB_URL var set.')
 
 
 # alias for implicit import in notebooks
