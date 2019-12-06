@@ -174,18 +174,3 @@ def monitor_import(sleep_seconds=1, batch=100, tgt_file=None):
                         raise
                     print(f'Continuing after load error: {e} {df}', file=sys.stderr)
                     break # break from the inner while, to re-connect with src
-
-
-def main(argv):
-    # log.info(argv)
-    if argv[0] == 'monitor_import':
-        monitor_import(
-            int(argv[1]),
-            int(argv[2]),
-            argv[3] if len(argv) > 3 else None)
-    elif argv[0] == 'clear_mem':
-        omnisci_olio.pymapd.clear_memory_forever(int(argv[1]))
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

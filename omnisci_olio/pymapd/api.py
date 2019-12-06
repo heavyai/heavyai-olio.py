@@ -83,12 +83,3 @@ def clear_cpu_memory(con):
 
 def clear_gpu_memory(con):
     return con._client.clear_gpu_memory(con._session)
-
-
-def clear_memory_forever(sleep_seconds=3600):
-    while True:
-        with pymapd.connect(os.environ['OMNISCI_DB_URL']) as con:
-            print(db_memory(con, detail=0).to_csv())
-            clear_cpu_memory(con)
-            clear_gpu_memory(con)
-        sleep(sleep_seconds)
