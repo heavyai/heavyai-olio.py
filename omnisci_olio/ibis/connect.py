@@ -35,7 +35,6 @@ class OmniSciIbisClient(ibis.omniscidb.OmniSciDBClient):
         session_id=None,
         bin_cert_validate=None,
         bin_ca_certs=None,
-        execution_type=EXECUTION_TYPE_CURSOR,
     ):
         """
         Parameters
@@ -48,9 +47,6 @@ class OmniSciIbisClient(ibis.omniscidb.OmniSciDBClient):
         database : str
         protocol : {'binary', 'http', 'https'}
         session_id: str
-        execution_type : {
-          EXECUTION_TYPE_ICP, EXECUTION_TYPE_ICP_GPU, EXECUTION_TYPE_CURSOR
-        }
         """
         self.uri = uri
         self.user = user
@@ -60,15 +56,6 @@ class OmniSciIbisClient(ibis.omniscidb.OmniSciDBClient):
         self.db_name = database
         self.protocol = protocol
         self.session_id = session_id
-
-        if execution_type not in (
-            EXECUTION_TYPE_ICP,
-            EXECUTION_TYPE_ICP_GPU,
-            EXECUTION_TYPE_CURSOR,
-        ):
-            raise Exception('Execution type defined not available.')
-
-        self.execution_type = execution_type
 
         if session_id:
             if self.version < pkg_resources.parse_version('0.12.0'):
@@ -108,13 +95,11 @@ def connect_prompt(url=None,
         port=None,
         database=None,
         protocol=None,
-        execution_type=None,
-        ipc=None,
         lookup=None):
     """
     """
 
-    u = url_prompt(url, username, password, host, port, database, protocol, execution_type, ipc, lookup)
+    u = url_prompt(url, username, password, host, port, database, protocol, lookup)
     # TODO BUG in ibis.omniscidb error passing the uri
     # con = ibis.omniscidb.connect(url_prompt(url))
     con = ibis.omniscidb.connect(user=u.username,
@@ -123,7 +108,7 @@ def connect_prompt(url=None,
         port=u.port,
         database=u.database,
         protocol=u.query.get('protocol'),
-        execution_type=u.query.get('execution_type'))
+    )
     return con
 
 
@@ -134,18 +119,16 @@ def connect(url=None,
         port=None,
         database=None,
         protocol=None,
-        execution_type=None,
-        ipc=None,
         lookup=None):
     """
     """
     if not url and not username and not password \
             and not host and not port and not database \
-            and not protocol and not execution_type and \
-            not ipc and not lookup and not 'OMNISCI_DB_URL' in os.environ:
+            and not protocol \
+            and not lookup and not 'OMNISCI_DB_URL' in os.environ:
         url = 'omnisci://admin:HyperInteractive@localhost:6274/omnisci'
 
-    u = omnisci_olio.pymapd.url_prompt(url, username, password, host, port, database, protocol, execution_type, ipc, lookup,
+    u = omnisci_olio.pymapd.url_prompt(url, username, password, host, port, database, protocol, lookup,
             param_prompt=omnisci_olio.pymapd.param_value)
     # TODO BUG in ibis.omniscidb error passing the uri
     # con = ibis.omniscidb.connect(url_prompt(url))
@@ -155,7 +138,7 @@ def connect(url=None,
         port=u.port,
         database=u.database,
         protocol=u.query.get('protocol'),
-        execution_type=u.query.get('execution_type'))
+    )
     return con
 
 
