@@ -1,4 +1,4 @@
-"""OmniSciDB loader"""
+"""OmniSciDB catalog, functions to load various datasets"""
 
 from .loader import omnisci_states, omnisci_counties, omnisci_countries, omnisci_log
 

@@ -46,9 +46,9 @@ Monitor system resources, cpu, disk, gpu/nvidia-smi, and also OmniSciDB internal
 Metrics can be saved to csv and/or loaded into OmniSciDB.
 
 
-## Loader
+## Catalog
 
-`omnisci_olio.loader` includes functions to load standard datasets into OmniSciDB:
+`omnisci_olio.catalog` includes functions to load standard datasets into OmniSciDB:
 
 - `omnisci_states`
 - `omnisci_counties`

@@ -12,7 +12,7 @@ setup(name='omnisci-olio',
         'omnisci_olio.pymapd',
         'omnisci_olio.ibis',
         'omnisci_olio.ipython',
-        'omnisci_olio.loader',
+        'omnisci_olio.catalog',
         'omnisci_olio.monitor',
         ],
     install_requires=[
