@@ -62,13 +62,19 @@ def db_memory(con, detail=1):
     # print('db_memory 1', df)
 
     if detail == 1:
+        df['max_gb'] = df.page_size * df.max_pages / 1024**3
+        df['used_gb'] = df.page_size * df.used_pages / 1024**3
+
         return df
     else:
         df0 = df.groupby(['device_type', 'hostname', 'page_size']).agg({
             'device': 'count', 'max_pages': 'sum',
             'pages_allocated': 'sum', 'used_pages': 'sum'
             })
-        df0.rename({'device': 'device_count'}, axis=1, inplace=True)
-        df0.reset_index(inplace=True)
-        # print('db_memory df0', df0)
-        return df0
+        df = df0
+        df.rename({'device': 'device_count'}, axis=1, inplace=True)
+        df.reset_index(inplace=True)
+        df['max_gb'] = df.page_size * df.max_pages / 1024**3
+        df['used_gb'] = df.page_size * df.used_pages / 1024**3
+        # print('db_memory df0', df)
+        return df
