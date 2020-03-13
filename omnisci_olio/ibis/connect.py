@@ -11,6 +11,7 @@ import pymapd
 import ibis.omniscidb
 import pkg_resources
 import omnisci_olio.pymapd
+from omnisci_olio.pymapd import url_prompt
 
 
 EXECUTION_TYPE_ICP = 1

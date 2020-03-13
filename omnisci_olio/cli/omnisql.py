@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import ibis.omniscidb
 from sqlalchemy.engine.url import URL
+from omnisci_olio.pymapd import url_prompt
 
 
 def omnisql(con, text):
