@@ -1,3 +1,4 @@
+from typing import Optional
 import json
 import os
 import getpass
@@ -36,6 +37,8 @@ class OmniSciIbisClient(ibis.omniscidb.OmniSciDBClient):
         session_id=None,
         bin_cert_validate=None,
         bin_ca_certs=None,
+        ipc: Optional[bool] = None,
+        gpu_device: Optional[int] = None,
     ):
         """
         Parameters
@@ -49,6 +52,10 @@ class OmniSciIbisClient(ibis.omniscidb.OmniSciDBClient):
         protocol : {'binary', 'http', 'https'}
         session_id: str
         """
+
+        # We don't call super.__init__ because we connect differently with the cert params
+        # super(OmniSciIbisClient, self).__init__(uri, user, password, host, port, database, protocol, session_id, ipc, gpu_device)
+
         self.uri = uri
         self.user = user
         self.password = password
@@ -57,6 +64,12 @@ class OmniSciIbisClient(ibis.omniscidb.OmniSciDBClient):
         self.db_name = database
         self.protocol = protocol
         self.session_id = session_id
+        self.con = None # always create the attribute in case connect fails below
+
+        self._check_execution_type(ipc=ipc, gpu_device=gpu_device)
+
+        self.ipc = ipc
+        self.gpu_device = gpu_device
 
         if session_id:
             if self.version < pkg_resources.parse_version('0.12.0'):

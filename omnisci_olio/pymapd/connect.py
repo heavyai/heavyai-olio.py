@@ -28,9 +28,11 @@ def lookup_url_for_name(name):
 def param_prompt(name, default_val, pw=False):
     if not pw:
         return input('OmniSciDB {} [{}]: '.format(name, default_val)) or default_val
-    elif not u.password:
+    elif default_val is None:
         print('OmniSciDB password: ', end='')
         return getpass.getpass()
+    else:
+        return default_val
 
 
 def param_value(name, default_val, pw=False):
