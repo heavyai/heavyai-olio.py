@@ -21,4 +21,4 @@ class OmniSciSqlMagic(Magics):
         con = local_ns[con_var]
         
         sql = cell if cell else line
-        return omnisci_olio.pyampd.select(con, query.format(**local_ns))
+        return omnisci_olio.pymapd.select(con, query.format(**local_ns))

@@ -14,6 +14,7 @@ setup(name='omnisci-olio',
         'omnisci_olio.ipython',
         'omnisci_olio.catalog',
         'omnisci_olio.monitor',
+        'omnisci_olio.cli',
         ],
     install_requires=[
         "pandas",
