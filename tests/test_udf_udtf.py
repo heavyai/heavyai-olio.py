@@ -3,14 +3,18 @@ Example use of OmniSci UDF and UDTF using python and pymapd.
 
 Instructions:
 
-If you use conda environment, create with:
+Optional: If you use need to create a clean conda environment:
 
     conda create -y -n omnisci-example python=3.7
     conda activate omnisci-example
 
-In whatever python environment you have:
+In any python environment (python 3.6 or 3.7), install OmniSci libraries and dependencies with:
 
-    pip install "pymapd==0.18"
+    pip install numba==0.48 rbc-project==0.2.0dev0 pymapd==0.21
+
+Alternatively, use conda instead of pip to install libraries:
+
+    conda install -y numba=0.48 rbc=0.2.0dev0 pymapd=0.21
 
 Set your connection parameters in a hidden place:
 
