@@ -6,7 +6,7 @@ from omnisci_olio.pymapd import copy_from
 
 
 def logger():
-    return logging.getLogger('default')
+    return logging.getLogger('omnisci_olio_loader')
 
 
 geo_dir = '/omnisci/ThirdParty/geo_samples'
@@ -69,7 +69,8 @@ def omnisci_log(con,
         table_name='omnisci_log',
         max_reject=100000000,
         max_rows=2**32,
-        ignore_errors=False):
+        ignore_errors=False,
+        skip_older_files=True):
     """
     Loads stdlog lines from OmniSci DB server log files.
     Returns Ibis table for OMNISCI_LOG.
@@ -82,7 +83,7 @@ def omnisci_log(con,
     
     if not con.exists_table(table_name):
         ddl= f"""CREATE TABLE {table_name}
-            ( tstamp TIMESTAMP(6)
+            ( tstamp TIMESTAMP(9)
             , severity CHAR(1)
             , pid INTEGER
             , fileline TEXT ENCODING DICT(16)
@@ -104,15 +105,19 @@ def omnisci_log(con,
     if os.path.exists(src_dir):
         for path in glob.glob(f"{src_dir}/{src_pattern}"):
             try:
-                # log files can have bad binary data
-                with open(path, 'rb') as f:
-                    line = f.read(26)
-                tstamp = pd.to_datetime(line.decode())
-                ct = t[t.tstamp >= tstamp].count().execute()
-                logger().info("%s %s %s", path, tstamp, ct)
+                if skip_older_files:
+                    # log files can have bad binary data
+                    with open(path, 'rb') as f:
+                        line = f.read(26)
+                    tstamp = pd.to_datetime(line.decode())
+                    tstamp = tstamp.ceil('s')
+                    ct = t[t.tstamp >= tstamp].count().execute()
+                    logger().info("%s %s %s", path, tstamp, ct)
+                else:
+                    ct = -1
                 if ct == 0:
                     q = f"""COPY {table_name} FROM '{path}' WITH ( header='false', delimiter=' ', max_reject={max_reject}, threads=1 )"""
-                    logger().info(q)
+                    logger().debug(q)
                     logger().info(copy_from(con.con, q))
 
             except Exception as e:
