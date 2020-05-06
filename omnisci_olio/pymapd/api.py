@@ -35,10 +35,11 @@ def select(con, operation, parameters=None,
         If not IPC and with no GPU: ``pandas.DataFrame``
     """
     if ipc in (None, False) and gpu_device is None:
-        cursor = con.execute(operation)
-        return pd.DataFrame(
-            cursor.fetchmany(first_n) if first_n >= 0 else cursor.fetchall(),
-            columns=[d.name for d in cursor.description])
+        return pd.read_sql(operation, con)
+        # cursor = con.execute(operation)
+        # return pd.DataFrame(
+        #     cursor.fetchmany(first_n) if first_n >= 0 else cursor.fetchall(),
+        #     columns=[d.name for d in cursor.description])
     elif ipc and gpu_device is None:
         return con.select_ipc(operation, parameters, first_n)
     elif gpu_device is not None:
@@ -48,6 +49,11 @@ def select(con, operation, parameters=None,
 def status(con):
     s = con._client.get_status(con.sessionid)
     return pd.DataFrame([t.__dict__ for t in s])
+
+
+def session(con):
+    s = con._client.get_session_info(con.sessionid)
+    return pd.DataFrame([s.__dict__])
 
 
 def copy_from(con, copy_from_sql):
