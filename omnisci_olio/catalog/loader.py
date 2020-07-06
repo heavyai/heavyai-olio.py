@@ -102,15 +102,17 @@ def omnisci_log(con,
         logger().info(ddl)
         logger().info(con.con.execute(ddl).fetchall())
 
+    t = con.table(table_name)
+    
     if os.path.exists(src_dir):
         for path in glob.glob(f"{src_dir}/{src_pattern}"):
             try:
+                # log files can have bad binary data
+                with open(path, 'rb') as f:
+                    line = f.read(26)
+                tstamp = pd.to_datetime(line.decode())
+                tstamp = tstamp.ceil('s')
                 if skip_older_files:
-                    # log files can have bad binary data
-                    with open(path, 'rb') as f:
-                        line = f.read(26)
-                    tstamp = pd.to_datetime(line.decode())
-                    tstamp = tstamp.ceil('s')
                     ct = t[t.tstamp >= tstamp].count().execute()
                     logger().info("%s %s %s", path, tstamp, ct)
                 else:
@@ -131,4 +133,4 @@ def omnisci_log(con,
         logger().info(q)
         logger().info(copy_from(con.con, q))
     
-    return con.table(table_name)
+    return t
