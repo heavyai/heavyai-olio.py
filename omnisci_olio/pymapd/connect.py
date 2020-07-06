@@ -85,7 +85,7 @@ def url_prompt(url=None,
     elif not u.query.get('protocol'):
         u.query['protocol'] = 'binary'
 
-    ipc_dict = {'cpu': 1, 'gpu': 2, 'remote': 3, None: 3}
+    ipc_dict = {'cpu': '1', 'gpu': '2', 'remote': '3', None: '3'}
     if ipc: u.query['execution_type'] = ipc_dict[ipc]
     elif u.query.get('ipc'):
         u.query['execution_type'] = ipc_dict[u.query['ipc']]
