@@ -2,9 +2,12 @@ import os
 import subprocess
 import sys
 import pandas as pd
-import ibis.omniscidb
 from sqlalchemy.engine.url import URL
 from omnisci_olio.pymapd import url_prompt
+try:
+    import ibis.backends.omniscidb as ibis_omniscidb
+except:
+    import ibis.omniscidb as ibis_omniscidb
 
 
 def omnisql(con, text):
@@ -12,7 +15,7 @@ def omnisql(con, text):
     Usage:
         omniscidb_util.omnisql(con, '\\status')
     """
-    if isinstance(con, ibis.omniscidb.OmniSciDBClient):
+    if isinstance(con, ibis_omniscidb.OmniSciDBClient):
         if con.protocol is not None and con.protocol != 'binary':
             protocol_arg = ['--' + con.protocol]
         else:

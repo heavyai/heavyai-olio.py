@@ -1,6 +1,5 @@
 import pandas as pd
 import pymapd
-import ibis.omniscidb
 import ibis
 
 

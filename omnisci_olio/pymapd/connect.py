@@ -93,7 +93,7 @@ def url_prompt(url=None,
 
     if execution_type: u.query['execution_type'] = execution_type
     elif u.query.get('execution_type'):
-        # TODO fix in ibis.omniscidb.connect: cast str to int
+        # TODO fix in ibis.backends.omniscidb.connect: cast str to int
         u.query['execution_type'] = int(u.query['execution_type'])
     else:
         u.query['execution_type'] = ipc_dict[None]

@@ -9,7 +9,10 @@ from sqlalchemy.engine.url import make_url, URL
 from pathlib import Path
 import pandas as pd
 import pymapd
-import ibis.omniscidb
+try:
+    import ibis.backends.omniscidb as ibis_omniscidb
+except:
+    import ibis.omniscidb as ibis_omniscidb
 import pkg_resources
 import omnisci_olio.pymapd
 from omnisci_olio.pymapd import url_prompt
@@ -20,7 +23,7 @@ EXECUTION_TYPE_ICP_GPU = 2
 EXECUTION_TYPE_CURSOR = 3
 
 
-class OmniSciIbisClient(ibis.omniscidb.OmniSciDBClient):
+class OmniSciIbisClient(ibis_omniscidb.OmniSciDBClient):
 
     # We can't yet pass a pymapd connection object to Ibis
     # and it does not support pymapd's binary TLS connections
@@ -114,9 +117,9 @@ def connect_prompt(url=None,
     """
 
     u = url_prompt(url, username, password, host, port, database, protocol, lookup)
-    # TODO BUG in ibis.omniscidb error passing the uri
-    # con = ibis.omniscidb.connect(url_prompt(url))
-    con = ibis.omniscidb.connect(user=u.username,
+    # TODO BUG in ibis_omniscidb error passing the uri
+    # con = ibis_omniscidb.connect(url_prompt(url))
+    con = ibis_omniscidb.connect(user=u.username,
         password=u.password,
         host=u.host,
         port=u.port,
@@ -144,9 +147,9 @@ def connect(url=None,
 
     u = omnisci_olio.pymapd.url_prompt(url, username, password, host, port, database, protocol, lookup,
             param_prompt=omnisci_olio.pymapd.param_value)
-    # TODO BUG in ibis.omniscidb error passing the uri
-    # con = ibis.omniscidb.connect(url_prompt(url))
-    con = ibis.omniscidb.connect(user=u.username,
+    # TODO BUG in ibis_omniscidb error passing the uri
+    # con = ibis_omniscidb.connect(url_prompt(url))
+    con = ibis_omniscidb.connect(user=u.username,
         password=u.password,
         host=u.host,
         port=u.port,
