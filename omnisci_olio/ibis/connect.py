@@ -8,7 +8,7 @@ import re
 from sqlalchemy.engine.url import make_url, URL
 from pathlib import Path
 import pandas as pd
-import pymapd
+import pyomnisci
 try:
     import ibis.backends.omniscidb as ibis_omniscidb
 except:
@@ -79,7 +79,7 @@ class OmniSciIbisClient(ibis_omniscidb.OmniSciDBClient):
                 raise PyMapDVersionError(
                     'Must have pymapd > 0.12 to use session ID'
                 )
-            self.con = pymapd.connect(
+            self.con = pyomnisci.connect(
                 uri=uri,
                 host=host,
                 port=port,
@@ -89,7 +89,7 @@ class OmniSciIbisClient(ibis_omniscidb.OmniSciDBClient):
                 bin_ca_certs=bin_ca_certs,
             )
         else:
-            self.con = pymapd.connect(
+            self.con = pyomnisci.connect(
                 uri=uri,
                 user=user,
                 password=password,
@@ -104,6 +104,7 @@ class OmniSciIbisClient(ibis_omniscidb.OmniSciDBClient):
      # Don't close the connection or we'll log the user out of Immerse
     def close(self):
         pass
+
 
 def connect_prompt(url=None,
         username=None,
