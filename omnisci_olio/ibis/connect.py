@@ -8,11 +8,15 @@ import re
 from sqlalchemy.engine.url import make_url, URL
 from pathlib import Path
 import pandas as pd
+
 import pyomnisci
-try:
-    import ibis.backends.omniscidb as ibis_omniscidb
-except:
-    import ibis.omniscidb as ibis_omniscidb
+import ibis
+import ibis_omniscidb
+# try:
+#     import ibis.backends.omniscidb as ibis_omniscidb
+# except:
+#     import ibis.omniscidb as ibis_omniscidb
+
 import pkg_resources
 import omnisci_olio.pymapd
 from omnisci_olio.pymapd import url_prompt

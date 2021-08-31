@@ -3,8 +3,8 @@
 from setuptools import setup
 
 setup(name='omnisci-olio',
-    version='0.2.0-dev0',
-    description='OmniSci DB: Python functions using Pymapd, Ibis and integration with various tools and datasets',
+    version='0.2.0.dev1',
+    description='OmniSci DB: Python functions using pyomnici, Ibis and integration with various tools and datasets',
     author='Mike Hinchey',
     author_email='mike.hinchey@omnisci.com',
     url='https://github.com/omnisci/omnisci-olio.py',
@@ -18,8 +18,10 @@ setup(name='omnisci-olio',
         ],
     install_requires=[
         "pandas",
-        "pymapd",
-        "ibis-framework",
+        "pymapd @ git+git://github.com/omnisci/pymapd.git@jp-harvey/pyomnisci-wrapper#egg=pymapd",
+        "pyomnisci",
+        # "ibis-framework",
+        "ibis_omniscidb",
         # "ibis-framework @ git+git://github.com/ibis-project/ibis.git@72ece317337fb7d329337f20db930845a669ce85#egg=ibis-framework",
     ]
 )
