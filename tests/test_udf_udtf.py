@@ -1,5 +1,5 @@
 """
-Example use of OmniSci UDF and UDTF using python and pymapd.
+Example use of OmniSci UDF and UDTF using python and pyomnisci.
 
 Instructions:
 
@@ -10,11 +10,11 @@ Optional: If you use need to create a clean conda environment:
 
 In any python environment (python 3.6 or 3.7), install OmniSci libraries and dependencies with:
 
-    pip install numba==0.48 rbc-project==0.2.0dev0 pymapd==0.21
+    pip install pyomnisci
 
 Alternatively, use conda instead of pip to install libraries:
 
-    conda install -y numba=0.48 rbc=0.2.0dev0 pymapd=0.21
+    conda install -y pyomnisci
 
 Set your connection parameters in a hidden place:
 
@@ -28,11 +28,11 @@ Then run this example:
 
 
 import os
-import pymapd
+import pyomnisci
 import pandas as pd
 
 
-con = pymapd.connect(os.environ['OMNISCI_DB_URL'])
+con = pyomnisci.connect(os.environ['OMNISCI_DB_URL'])
 print(con)
 
 

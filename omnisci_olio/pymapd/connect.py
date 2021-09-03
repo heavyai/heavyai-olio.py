@@ -6,7 +6,7 @@ import sys
 from sqlalchemy.engine.url import make_url, URL
 from pathlib import Path
 import pandas as pd
-import pymapd
+import pyomnisci
 
 
 def lookup_url_for_name(name):
@@ -129,8 +129,8 @@ def connect_prompt(url=None,
     """
     """
     u = url_prompt(url, username, password, host, port, database, protocol, execution_type, ipc, lookup)
-    return pymapd.connect(u)
+    return pyomnisci.connect(u)
 
 
 def connect():
-    return pymapd.connect(os.environ['OMNISCI_DB_URL'])
+    return pyomnisci.connect(os.environ['OMNISCI_DB_URL'])
