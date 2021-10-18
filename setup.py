@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='omnisci-olio',
-    version='0.2.0.dev1',
+    version='0.2.0.dev2',
     description='OmniSci DB: Python functions using pyomnici, Ibis and integration with various tools and datasets',
     author='Mike Hinchey',
     author_email='mike.hinchey@omnisci.com',
@@ -20,6 +20,7 @@ setup(name='omnisci-olio',
         "pandas",
         "pyomnisci>=0.27.0",
         "pyomniscidb>=5.6.4.1",
-        "ibis_omniscidb>=0.2.0",
+        # "ibis_omniscidb>=2.0.0",
+        "ibis_omniscidb @ git+git://github.com/omnisci/ibis-omniscidb.git@master#egg=ibis-omniscidb",
     ]
 )

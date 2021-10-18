@@ -27,7 +27,7 @@ EXECUTION_TYPE_ICP_GPU = 2
 EXECUTION_TYPE_CURSOR = 3
 
 
-class OmniSciIbisClient(ibis_omniscidb.OmniSciDBClient):
+class OmniSciIbisClient(ibis_omniscidb.OmniSciDBUDF):
 
     # We can't yet pass a pymapd connection object to Ibis
     # and it does not support pymapd's binary TLS connections
@@ -124,7 +124,7 @@ def connect_prompt(url=None,
     u = url_prompt(url, username, password, host, port, database, protocol, lookup)
     # TODO BUG in ibis_omniscidb error passing the uri
     # con = ibis_omniscidb.connect(url_prompt(url))
-    con = ibis_omniscidb.connect(user=u.username,
+    con = ibis.omniscidb.connect(user=u.username,
         password=u.password,
         host=u.host,
         port=u.port,
@@ -134,7 +134,17 @@ def connect_prompt(url=None,
     return con
 
 
-def connect(url=None,
+def connect(uri=None):
+    if uri is None:
+        if 'OMNISCI_DB_URL' in os.environ:
+            uri = os.environ['OMNISCI_DB_URL']
+        else:
+            uri = 'omnisci://admin:HyperInteractive@localhost:6274/omnisci'
+    print('xxx', uri)
+    return ibis.omniscidb.connect(uri=uri)
+
+
+def connect_defaults(url=None,
         username=None,
         password=None,
         host=None,
@@ -154,7 +164,7 @@ def connect(url=None,
             param_prompt=omnisci_olio.pymapd.param_value)
     # TODO BUG in ibis_omniscidb error passing the uri
     # con = ibis_omniscidb.connect(url_prompt(url))
-    con = ibis_omniscidb.connect(user=u.username,
+    con = ibis.omniscidb.connect(user=u.username,
         password=u.password,
         host=u.host,
         port=u.port,

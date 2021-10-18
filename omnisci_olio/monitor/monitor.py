@@ -153,7 +153,7 @@ summary_table = 'omnisci_system_metrics_summary'
 
 
 def create_tables(tgt):
-    if not tgt.exists_table(summary_table):
+    if not summary_table in tgt.list_tables():
         tgt.create_table(summary_table, schema=sum_schema, max_rows=10**9*200)
 
     # TODO evolve old schema:
