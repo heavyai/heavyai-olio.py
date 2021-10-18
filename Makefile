@@ -1,38 +1,78 @@
+SHELL = /bin/sh
 .DEFAULT_GOAL=all
+
+DB_CONTAINER = omnisci_test
+PYTHON = 3.8
+OMNISCI_VERSION = v5.8.0
+# OMNISCI_VERSION = latest
 
 -include .env
 
-start:
-	docker run -d --name omnisci-dev --ipc=host \
-		-p ${OMNISCI_DB_PORT}:6274 \
-		-p ${OMNISCI_DB_PORT_HTTP}:6278 \
-		omnisci/core-os-cpu:v5.7.0
+init:
+	mamba env create -f ./environment.yml
 
-start_gpu:
-	docker run -d --name omnisci-dev --ipc=host \
-		-p ${OMNISCI_DB_PORT}:6274 \
-		-p ${OMNISCI_DB_PORT_HTTP}:6278 \
-		omnisci/core-os-cuda:v5.7.0 \
-		/omnisci/startomnisci --non-interactive --data /omnisci-storage/data --config /omnisci-storage/omnisci.conf \
-		--enable-runtime-udf
-
-stop:
-	docker stop omnisci-dev
-	docker rm omnisci-dev
+init.gpu:
+	mamba env create -f ./environment_gpu.yml
 
 deps:
-	conda install -y pytest
+	mamba install -y pytest black
+.PHONY: deps
+
+update:
+	mamba env update -f ./environment.yml
+
+update.gpu:
+	mamba env update -f ./environment_gpu.yml
+
+develop:
+	pip install -e '.[dev]'
+	pre-commit install
+
+start:
+	docker run -d --rm --name ${DB_CONTAINER} \
+		--ipc=host \
+		-p ${OMNISCI_DB_PORT}:6274 \
+		-p ${OMNISCI_DB_PORT_HTTP}:6278 \
+		omnisci/core-os-cpu:${OMNISCI_VERSION} \
+		/omnisci/startomnisci --non-interactive \
+		--data /omnisci-storage/data --config /omnisci-storage/omnisci.conf \
+		--enable-runtime-udf --enable-table-functions --allowed-import-paths='["/"]'
+.PHONY: start
+
+start.gpu:
+	docker run -d --rm --name ${DB_CONTAINER} \
+		--ipc=host \
+		--gpus=0 \
+		-p ${OMNISCI_DB_PORT}:6274 \
+		-p ${OMNISCI_DB_PORT_HTTP}:6278 \
+		omnisci/core-os-cuda:${OMNISCI_VERSION} \
+		/omnisci/startomnisci --non-interactive \
+		--data /omnisci-storage/data --config /omnisci-storage/omnisci.conf \
+		--enable-runtime-udf --enable-table-functions
+.PHONY: start.gpu
+
+stop:
+	docker stop ${DB_CONTAINER}
+.PHONY: stop
+
+down:
+	docker rm -f ${DB_CONTAINER}
+.PHONY: down
 
 install:
 	pip install -e .
-
-init: test_init install deps
-	# TODO this is incomplete
+.PHONY: install
 
 build:
-	pip install -e .
 	python setup.py build
+	# pip install -e .
 .PHONY: build
+
+check:
+	# pre-commit
+	black .
+	# flake8
+ .PHONY: check
 
 clean:
 	python setup.py clean

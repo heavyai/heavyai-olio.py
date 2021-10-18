@@ -17,10 +17,10 @@ def omnisci_geo(con,
         src_file,
         drop=False,
         src_dir=geo_dir):
-    if con.exists_table(table_name):
+    if table_name in con.list_tables():
         t = con.table(table_name)
         if drop:
-            t.drop()
+            con.drop_table(table_name)
         else:
             return t
     q = f"""COPY {table_name} FROM '{src_dir}/{src_file}' WITH ( geo='true', max_reject=0 )"""
@@ -76,12 +76,12 @@ def omnisci_log(con,
     Returns Ibis table for OMNISCI_LOG.
     """
 
-    if con.exists_table(table_name):
+    if table_name in con.list_tables():
         t = con.table(table_name)
         if drop:
             t.drop()
     
-    if not con.exists_table(table_name):
+    if not table_name in con.list_tables():
         ddl= f"""CREATE TABLE {table_name}
             ( tstamp TIMESTAMP(9)
             , severity CHAR(1)
