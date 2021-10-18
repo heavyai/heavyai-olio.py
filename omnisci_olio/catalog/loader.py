@@ -6,17 +6,13 @@ from omnisci_olio.pymapd import copy_from
 
 
 def logger():
-    return logging.getLogger('omnisci_olio_loader')
+    return logging.getLogger("omnisci_olio_loader")
 
 
-geo_dir = '/omnisci/ThirdParty/geo_samples'
+geo_dir = "/omnisci/ThirdParty/geo_samples"
 
 
-def omnisci_geo(con,
-        table_name,
-        src_file,
-        drop=False,
-        src_dir=geo_dir):
+def omnisci_geo(con, table_name, src_file, drop=False, src_dir=geo_dir):
     if table_name in con.list_tables():
         t = con.table(table_name)
         if drop:
@@ -29,48 +25,59 @@ def omnisci_geo(con,
     return con.table(table_name)
 
 
-def omnisci_states(con,
-        drop=False,
-        src_dir=geo_dir,
-        table_name='omnisci_states'):
+def omnisci_states(con, drop=False, src_dir=geo_dir, table_name="omnisci_states"):
     """
     If the table does not exists, loads from geojson file included with OmniSci installation.
     Returns Ibis table for OMNISCI_STATES.
     """
-    return omnisci_geo(con, drop=drop, src_dir=src_dir, table_name=table_name, src_file='us-states.json')
+    return omnisci_geo(
+        con,
+        drop=drop,
+        src_dir=src_dir,
+        table_name=table_name,
+        src_file="us-states.json",
+    )
 
 
-def omnisci_counties(con,
-        drop=False,
-        src_dir=geo_dir,
-        table_name='omnisci_counties'):
+def omnisci_counties(con, drop=False, src_dir=geo_dir, table_name="omnisci_counties"):
     """
     If the table does not exists, loads from geojson file included with OmniSci installation.
     Returns Ibis table for OMNISCI_COUNTIES.
     """
-    return omnisci_geo(con, drop=drop, src_dir=src_dir, table_name=table_name, src_file='us-counties.json')
+    return omnisci_geo(
+        con,
+        drop=drop,
+        src_dir=src_dir,
+        table_name=table_name,
+        src_file="us-counties.json",
+    )
 
 
-def omnisci_countries(con,
-        drop=False,
-        src_dir=geo_dir,
-        table_name='omnisci_countries'):
+def omnisci_countries(con, drop=False, src_dir=geo_dir, table_name="omnisci_countries"):
     """
     If the table does not exists, loads from geojson file included with OmniSci installation.
     Returns Ibis table for OMNISCI_COUNTRIES.
     """
-    return omnisci_geo(con, drop=drop, src_dir=src_dir, table_name=table_name, src_file='countries.json')
+    return omnisci_geo(
+        con,
+        drop=drop,
+        src_dir=src_dir,
+        table_name=table_name,
+        src_file="countries.json",
+    )
 
 
-def omnisci_log(con,
-        drop=False,
-        src_dir='/omnisci-storage/data/mapd_log',
-        src_pattern='omnisci_server.INFO.*.log',
-        table_name='omnisci_log',
-        max_reject=100000000,
-        max_rows=2**32,
-        ignore_errors=False,
-        skip_older_files=True):
+def omnisci_log(
+    con,
+    drop=False,
+    src_dir="/omnisci-storage/data/mapd_log",
+    src_pattern="omnisci_server.INFO.*.log",
+    table_name="omnisci_log",
+    max_reject=100000000,
+    max_rows=2 ** 32,
+    ignore_errors=False,
+    skip_older_files=True,
+):
     """
     Loads stdlog lines from OmniSci DB server log files.
     Returns Ibis table for OMNISCI_LOG.
@@ -80,9 +87,9 @@ def omnisci_log(con,
         t = con.table(table_name)
         if drop:
             t.drop()
-    
+
     if not table_name in con.list_tables():
-        ddl= f"""CREATE TABLE {table_name}
+        ddl = f"""CREATE TABLE {table_name}
             ( tstamp TIMESTAMP(9)
             , severity CHAR(1)
             , pid INTEGER
@@ -103,15 +110,15 @@ def omnisci_log(con,
         logger().info(con.con.execute(ddl).fetchall())
 
     t = con.table(table_name)
-    
+
     if os.path.exists(src_dir):
         for path in glob.glob(f"{src_dir}/{src_pattern}"):
             try:
                 # log files can have bad binary data
-                with open(path, 'rb') as f:
+                with open(path, "rb") as f:
                     line = f.read(26)
                 tstamp = pd.to_datetime(line.decode())
-                tstamp = tstamp.ceil('s')
+                tstamp = tstamp.ceil("s")
                 if skip_older_files:
                     ct = t[t.tstamp >= tstamp].count().execute()
                     logger().info("%s %s %s", path, tstamp, ct)
@@ -124,7 +131,7 @@ def omnisci_log(con,
 
             except Exception as e:
                 if ignore_errors:
-                    logger().warning('skip %s %s', path, e)
+                    logger().warning("skip %s %s", path, e)
                     continue
                 else:
                     raise
@@ -132,5 +139,5 @@ def omnisci_log(con,
         q = f"""COPY {table_name} FROM '{src_dir}/{src_pattern}' WITH ( header='false', delimiter=' ', max_reject={max_reject}, threads=1 )"""
         logger().info(q)
         logger().info(copy_from(con.con, q))
-    
+
     return t
