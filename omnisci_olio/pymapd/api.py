@@ -6,8 +6,14 @@ import re
 import pandas as pd
 
 
-def select(con, operation, parameters=None,
-            first_n: int = -1, ipc: bool = None, gpu_device: int = None):
+def select(
+    con,
+    operation,
+    parameters=None,
+    first_n: int = -1,
+    ipc: bool = None,
+    gpu_device: int = None,
+):
     """
     Executes the SQL operation, delegates to ``execute``, ``select_ipc`` or ``select_ipc_gpu``
     depending on the value of ``ipc`` and ``gpu_device``.
@@ -26,7 +32,7 @@ def select(con, operation, parameters=None,
         otherwise its default value is True (same as ``select_ipc_gpu``).
     gpu_device: int, optional, default ``None``
         GPU device ID.
-    
+
     Returns
     -------
     output: execution type dependent
@@ -65,16 +71,18 @@ def copy_from(con, copy_from_sql):
     """
     rs = con.execute(copy_from_sql).fetchall()
     msg = rs[0][0]
-    if msg.startswith('Loaded:'):
-        m = re.match('Loaded: ([0-9]+) recs, Rejected: ([0-9]+) recs in ([0-9.]+) secs', msg)
+    if msg.startswith("Loaded:"):
+        m = re.match(
+            "Loaded: ([0-9]+) recs, Rejected: ([0-9]+) recs in ([0-9.]+) secs", msg
+        )
         if m:
-            return {'loaded': m[1], 'rejected': m[2], 'time': m[3]}
+            return {"loaded": m[1], "rejected": m[2], "time": m[3]}
         else:
             # never seen this, but just in case
-            return {'message': msg}
-    elif msg.startswith('Creating ') or msg.startswith('Appending '):
+            return {"message": msg}
+    elif msg.startswith("Creating ") or msg.startswith("Appending "):
         # with geo=true is not very descriptive
-        return {'message': msg}
+        return {"message": msg}
     else:
         raise Exception(str(rs))
 

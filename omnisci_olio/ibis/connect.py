@@ -12,6 +12,7 @@ import pandas as pd
 import pyomnisci
 import ibis
 import ibis_omniscidb
+
 # try:
 #     import ibis.backends.omniscidb as ibis_omniscidb
 # except:
@@ -40,7 +41,7 @@ class OmniSciIbisClient(ibis_omniscidb.OmniSciDBUDF):
         host=None,
         port=6274,
         database=None,
-        protocol='binary',
+        protocol="binary",
         session_id=None,
         bin_cert_validate=None,
         bin_ca_certs=None,
@@ -71,7 +72,7 @@ class OmniSciIbisClient(ibis_omniscidb.OmniSciDBUDF):
         self.db_name = database
         self.protocol = protocol
         self.session_id = session_id
-        self.con = None # always create the attribute in case connect fails below
+        self.con = None  # always create the attribute in case connect fails below
 
         self._check_execution_type(ipc=ipc, gpu_device=gpu_device)
 
@@ -79,10 +80,8 @@ class OmniSciIbisClient(ibis_omniscidb.OmniSciDBUDF):
         self.gpu_device = gpu_device
 
         if session_id:
-            if self.version < pkg_resources.parse_version('0.12.0'):
-                raise PyMapDVersionError(
-                    'Must have pymapd > 0.12 to use session ID'
-                )
+            if self.version < pkg_resources.parse_version("0.12.0"):
+                raise PyMapDVersionError("Must have pymapd > 0.12 to use session ID")
             self.con = pyomnisci.connect(
                 uri=uri,
                 host=host,
@@ -105,94 +104,116 @@ class OmniSciIbisClient(ibis_omniscidb.OmniSciDBUDF):
                 bin_ca_certs=bin_ca_certs,
             )
 
-     # Don't close the connection or we'll log the user out of Immerse
+    # Don't close the connection or we'll log the user out of Immerse
     def close(self):
         pass
 
 
-def connect_prompt(url=None,
-        username=None,
-        password=None,
-        host=None,
-        port=None,
-        database=None,
-        protocol=None,
-        lookup=None):
-    """
-    """
+def connect_prompt(
+    url=None,
+    username=None,
+    password=None,
+    host=None,
+    port=None,
+    database=None,
+    protocol=None,
+    lookup=None,
+):
+    """ """
 
     u = url_prompt(url, username, password, host, port, database, protocol, lookup)
     # TODO BUG in ibis_omniscidb error passing the uri
     # con = ibis_omniscidb.connect(url_prompt(url))
-    con = ibis.omniscidb.connect(user=u.username,
+    con = ibis.omniscidb.connect(
+        user=u.username,
         password=u.password,
         host=u.host,
         port=u.port,
         database=u.database,
-        protocol=u.query.get('protocol'),
+        protocol=u.query.get("protocol"),
     )
     return con
 
 
 def connect(uri=None):
     if uri is None:
-        if 'OMNISCI_DB_URL' in os.environ:
-            uri = os.environ['OMNISCI_DB_URL']
+        if "OMNISCI_DB_URL" in os.environ:
+            uri = os.environ["OMNISCI_DB_URL"]
         else:
-            uri = 'omnisci://admin:HyperInteractive@localhost:6274/omnisci'
-    print('xxx', uri)
+            uri = "omnisci://admin:HyperInteractive@localhost:6274/omnisci"
+    print("xxx", uri)
     return ibis.omniscidb.connect(uri=uri)
 
 
-def connect_defaults(url=None,
-        username=None,
-        password=None,
-        host=None,
-        port=None,
-        database=None,
-        protocol=None,
-        lookup=None):
-    """
-    """
-    if not url and not username and not password \
-            and not host and not port and not database \
-            and not protocol \
-            and not lookup and not 'OMNISCI_DB_URL' in os.environ:
-        url = 'omnisci://admin:HyperInteractive@localhost:6274/omnisci'
+def connect_defaults(
+    url=None,
+    username=None,
+    password=None,
+    host=None,
+    port=None,
+    database=None,
+    protocol=None,
+    lookup=None,
+):
+    """ """
+    if (
+        not url
+        and not username
+        and not password
+        and not host
+        and not port
+        and not database
+        and not protocol
+        and not lookup
+        and not "OMNISCI_DB_URL" in os.environ
+    ):
+        url = "omnisci://admin:HyperInteractive@localhost:6274/omnisci"
 
-    u = omnisci_olio.pymapd.url_prompt(url, username, password, host, port, database, protocol, lookup,
-            param_prompt=omnisci_olio.pymapd.param_value)
+    u = omnisci_olio.pymapd.url_prompt(
+        url,
+        username,
+        password,
+        host,
+        port,
+        database,
+        protocol,
+        lookup,
+        param_prompt=omnisci_olio.pymapd.param_value,
+    )
     # TODO BUG in ibis_omniscidb error passing the uri
     # con = ibis_omniscidb.connect(url_prompt(url))
-    con = ibis.omniscidb.connect(user=u.username,
+    con = ibis.omniscidb.connect(
+        user=u.username,
         password=u.password,
         host=u.host,
         port=u.port,
         database=u.database,
-        protocol=u.query.get('protocol'),
+        protocol=u.query.get("protocol"),
     )
     return con
 
 
 def connect_session():
-    session_path = '{0}/.jupyterscratch/.omniscisession'.format(Path.home())
+    session_path = "{0}/.jupyterscratch/.omniscisession".format(Path.home())
     if os.path.exists(session_path):
-        sessionid = json.loads(open(session_path, 'r').read()).get('session', 'invalid')
-        bin_cert_validate = os.environ.get('OMNISCI_BINARY_TLS_VALIDATE', None)
+        sessionid = json.loads(open(session_path, "r").read()).get("session", "invalid")
+        bin_cert_validate = os.environ.get("OMNISCI_BINARY_TLS_VALIDATE", None)
         if bin_cert_validate is not None:
-            bin_cert_validate = True if bin_cert_validate.lower() == 'true' else False
+            bin_cert_validate = True if bin_cert_validate.lower() == "true" else False
         return OmniSciIbisClient(
             session_id=sessionid,
-            host=os.environ.get('OMNISCI_HOST'),
-            port=os.environ.get('OMNISCI_PORT'),
-            protocol=os.environ.get('OMNISCI_PROTOCOL'),
+            host=os.environ.get("OMNISCI_HOST"),
+            port=os.environ.get("OMNISCI_PORT"),
+            protocol=os.environ.get("OMNISCI_PROTOCOL"),
             bin_cert_validate=bin_cert_validate,
-            bin_ca_certs=os.environ.get('OMNISCI_BINARY_TLS_CACERTS', None),
+            bin_ca_certs=os.environ.get("OMNISCI_BINARY_TLS_CACERTS", None),
         )
-    elif 'OMNISCI_DB_URL' in os.environ:
+    elif "OMNISCI_DB_URL" in os.environ:
         return connect()
     else:
-        raise Exception('Unable to connect automatically. No .omniscisession file found, no OMNISCI_DB_URL var set.')
+        raise Exception(
+            "Unable to connect automatically. No .omniscisession file found, no OMNISCI_DB_URL var set."
+        )
 
 
 # alias for implicit import in notebooks

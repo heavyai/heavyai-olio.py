@@ -3,6 +3,7 @@
 import sys
 import omnisci_olio.pymapd
 
+
 def clear_memory_forever(sleep_seconds=3600):
     while True:
         with omnisci_olio.pymapd.connect() as con:
