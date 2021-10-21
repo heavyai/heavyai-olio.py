@@ -141,7 +141,6 @@ def connect(uri=None):
             uri = os.environ["OMNISCI_DB_URL"]
         else:
             uri = "omnisci://admin:HyperInteractive@localhost:6274/omnisci"
-    print("xxx", uri)
     return ibis.omniscidb.connect(uri=uri)
 
 

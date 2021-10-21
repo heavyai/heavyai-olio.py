@@ -16,12 +16,20 @@ setup(
         "omnisci_olio.catalog",
         "omnisci_olio.monitor",
         "omnisci_olio.cli",
+        "omnisci_olio.schema",
+        "omnisci_olio.workflow",
     ],
     install_requires=[
         "pandas",
-        "pyomnisci>=0.27.0",
-        "pyomniscidb>=5.6.4.1",
-        # "ibis_omniscidb>=2.0.0",
-        "ibis_omniscidb @ git+git://github.com/omnisci/ibis-omniscidb.git@master#egg=ibis-omniscidb",
+        # TODO we should specify min versions, but these, when mamba-installed report 0.0.0 to pip
+        "pyomnisci",  # >= 0.27.0
+        "pyomniscidb",  #  >= 5.6.4.1
+        "ibis_omniscidb",  # >= 2.0.1
+        # "ibis_omniscidb @ git+git://github.com/omnisci/ibis-omniscidb.git@master#egg=ibis-omniscidb",
+        "sqlalchemy-omnisci",
+        "prefect >= 0.15",
+        # TODO these are dependencies of pyomnisci, not installed by that yet
+        "netifaces",
+        "thriftpy2",
     ],
 )
