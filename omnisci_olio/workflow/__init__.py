@@ -4,5 +4,3 @@ OmniSci Olio workflow: high-level API client for workflow, schema API to constru
 
 from .client import connect, log_info, log_warning, log_error, logi
 from .client import connect as omnisci_task
-
-from .prefect import OmnisciStorageTask, OmnisciStorageLoopTask

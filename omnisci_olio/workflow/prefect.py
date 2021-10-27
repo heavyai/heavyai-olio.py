@@ -13,13 +13,12 @@ def _fullclassname(obj):
 
 class OmnisciStorageTask(Task):
     """
-    Abstract Task to produce a SQL query operation (by a subclass)
+    Abstract Prefect Task to produce a SQL query operation (by a subclass)
     and store the results in an OmniSci DB table.
     """
 
     def __init__(
         self,
-        target=None,
         drop_target=False,
     ):
         super().__init__(
@@ -35,20 +34,25 @@ class OmnisciStorageTask(Task):
         """
         pass
 
+    def store(self, con, sources, target, drop=False, **kwargs):
+        """
+        Calls gen_sql and `con.store`.
+        Subclass may override to store differently.
+        """
+
+        query = self.gen_sql(con, **sources, **kwargs)
+        return con.store(query, load_table=target, sources=sources, drop=drop)
+
     def run(self, con_url, sources, target, **kwargs):
         with connect(con_url) as con:
-
-            # only drop on the first iteration of the loop
-            if self.drop_target:
-                con.drop_table(target)
-
-            query = self.gen_sql(con, **sources, **kwargs)
-            return con.store(query, load_table=target)
+            return self.store(
+                con, sources=sources, target=target, drop=self.drop_target, **kwargs
+            )
 
 
 class OmnisciStorageLoopTask(OmnisciStorageTask):
     """
-    Abstract Task to produce a SQL query operation (by a subclass)
+    Abstract Prefect Task to produce a SQL query operation (by a subclass)
     and store the results in an OmniSci DB table
     in multiple steps based on some key column present in the source tables
     and not yet present in the target table.
@@ -70,9 +74,27 @@ class OmnisciStorageLoopTask(OmnisciStorageTask):
         """
         pass
 
-    def run(self, con_url, sources, target, **kwargs):
+    def store(self, con, loop_key, sources, target, **kwargs):
         """
-        https://docs.prefect.io/core/advanced_tutorials/task-looping.html
+        Calls gen_sql and `con.store`.
+        Subclass may override to store differently.
+        """
+
+        query = self.gen_sql(con, loop_key=loop_key, **sources, **kwargs)
+        return con.store(query, load_table=target)
+
+    def run(self, con_url, sources, target, forward_target=None, **kwargs):
+        """
+        Run the task - will be invoked multiple times, controlled by state held in the task context.
+
+        con_url - OmniSci DB connection URL
+        sources - list of source table names
+        target - target table name
+        forward_target - Optional, table name, to be used when the target table is temporary/intermediate;
+            before running get_loop_keys or gen_sql for the target table,
+            check get_loop_keys(con, sources, forward_target) - if that is None, end the task.
+
+        Background on prefect task loops: https://docs.prefect.io/core/advanced_tutorials/task-looping.html
         """
 
         loop_payload = prefect.context.get("task_loop_result", {})
@@ -81,9 +103,18 @@ class OmnisciStorageLoopTask(OmnisciStorageTask):
 
         with connect(con_url) as con:
 
-            # only drop on the first iteration of the loop
-            if self.drop_target and len(loop_payload) == 0:
-                con.drop_table(target)
+            # only on the first iteration of the loop
+            if len(loop_payload) == 0:
+
+                # only drop on the first iteration of the loop
+                if self.drop_target:
+                    con.drop_table(target)
+
+                if forward_target and loop_keys is None:
+                    forward_loop_keys = self.get_loop_keys(con, sources, forward_target)
+                    if len(forward_loop_keys) == 0:
+                        # if the forward_target does not need any processing, skip the current task
+                        return None
 
             if loop_keys is None:
                 loop_keys = self.get_loop_keys(con, sources, target)
@@ -93,8 +124,7 @@ class OmnisciStorageLoopTask(OmnisciStorageTask):
 
             loop_key = loop_keys.pop(0)
 
-            query = self.gen_sql(con, loop_key=loop_key, **sources, **kwargs)
-            con.store(query, load_table=target)
+            self.store(con, loop_key, sources, target, **kwargs)
 
         loop_keys_processed += loop_key
 

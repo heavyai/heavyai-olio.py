@@ -275,3 +275,49 @@ class Table:
 
     def __str__(self):
         return self.compile()
+
+
+parse_datatypes = {
+    "TEXT ENCODING DICT(8)": "Text(8)",
+    "TEXT ENCODING DICT(16)": "Text(16)",
+    "TEXT ENCODING DICT(32)": "Text(32)",
+    "TINYINT": "Integer(8)",
+    "SMALLINT": "Integer(16)",
+    "INTEGER": "Integer(32)",
+    "BIGINT": "Integer(64)",
+    "FLOAT": "Float(32)",
+    "DOUBLE": "Float(64)",
+    # TODO more types
+}
+
+
+def parse_ddl_to_python(ddl_text, namespace="sc"):
+    """
+    Parse OmniSci DDL text, print python code for a Table and Columns.
+    """
+    table_name = None
+    cols = []
+    ddl_text = ddl_text.strip()
+    if ddl_text.endswith(";"):
+        ddl_text = ddl_text[:-1]
+    for line in ddl_text.split("\n"):
+        try:
+            if line.startswith("CREATE TABLE "):
+                m = re.match("CREATE TABLE (.*) \(", line)
+                table_name = m[1]
+                print(f"""{namespace}.Table("{table_name}", [""")
+            elif line.startswith("SHARED DICTIONARY "):
+                m = re.match("SHARED DICTIONARY \((.*)\) REFERENCES (.*)\((.*)\)", line)
+                # TODO SHARED DICTIONARY
+                print(f"""TODO SHARED DICTIONARY {m[1]} {m[2]} {m[3]}""")
+            elif line.startswith("SHARD KEY "):
+                m = re.match("SHARD KEY \((.*)\)", line)
+                # TODO SHARD KEY
+                print(f"""TODO SHARD KEY {m[1]}""")
+            else:
+                m = re.match(" *([a-zA-Z0-9_]*) (.*)[,\)]$", line)
+                dt = parse_datatypes.get(m[2], m[2])
+                print(f"""    {namespace}.Column("{m[1]}", {namespace}.{dt}),""")
+        except Exception as e:
+            raise Exception(f'line = "{line}"') from e
+    print("])")

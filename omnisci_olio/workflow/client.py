@@ -69,14 +69,6 @@ def log_infx(
     )
 
 
-def log_inf(**kwargs):
-    logger().info(str(kwargs))
-
-
-def log_err(**kwargs):
-    logger().error(str(kwargs))
-
-
 def _file_md5sum(filename):
     h = hashlib.md5()
     with open(filename, "rb") as f:
@@ -240,7 +232,7 @@ class OmniSciDBClient:
         name = name.replace(">=", "ge")
         name = name.replace(">", "gt")
         name = name.replace("+", "plus")
-        name = name.replace("-", "minus")
+        # name = name.replace("-", "minus")
         a = "".join([c if c.isalnum() else "_" for c in name.strip()])
         b = (a + "_") if (a.upper() in sqlalchemy_omnisci.base.RESERVED_WORDS) else a
         if b[0].isdigit():
@@ -641,16 +633,16 @@ class OmniSciDBClient:
         return self.exec_update(
             table_name, q, sources=[from_file_glob], cmd="COPY FROM"
         )
-    
+
     def _shared_tmp_dir(self):
-        path = '/jhub_omnisci_dropbox'
+        path = "/jhub_omnisci_dropbox"
         if os.path.exists(path):
-            path += '/tmp'
+            path += "/tmp"
             os.makedirs(path, exist_ok=True)
             return path
         else:
             # TODO add a config option so this is more flexible/usable
-            raise Exception(f'Path not found for shared tmp dir: {path}')
+            raise Exception(f"Path not found for shared tmp dir: {path}")
 
     def store_by_copy(self, df, tgt_table, ddl=None, sources=None, drop=False, key=""):
         tstart = time()
@@ -886,6 +878,7 @@ class OmniSciDBClient:
         skip_if_exists=False,
         take_counts=True,
         fragment_size=None,
+        sources=None,
     ):
         """
         Loads `data` into a table if load_table is not None.
@@ -899,7 +892,7 @@ class OmniSciDBClient:
                 load_table,
                 data,
                 ddl=ddl,
-                sources=self.sources,
+                sources=sources,
                 drop=drop,
                 is_temporary=is_temporary,
                 skip_if_exists=skip_if_exists,
