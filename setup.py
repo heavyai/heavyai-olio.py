@@ -18,6 +18,7 @@ setup(
         "omnisci_olio.cli",
         "omnisci_olio.schema",
         "omnisci_olio.workflow",
+        "omnisci_olio.dashboard",
     ],
     install_requires=[
         "pandas",

@@ -2,6 +2,19 @@
 A simple object structure to generate OmniSciDB DDL definitions.
 """
 
+import re
+
+
+class ModelObject:
+
+    def __init__(
+        self,
+        name,
+        tags=None,
+    ):
+        self.name = name
+        self.tags = tags
+
 
 class Datatype:
     def __init__(
@@ -159,7 +172,7 @@ multipolygon4326ec32 = Geometry("MULTIPOLYGON", 4326, 32)
 # TODO more types
 
 
-class Column:
+class Column (ModelObject):
     def __init__(
         self,
         name,
@@ -168,8 +181,9 @@ class Column:
         shard_key=False,
         comment=None,
         source_col=None,
+        tags=None,
     ):
-        self.name = name
+        super().__init__(name=name, tags=tags)
         self.datatype = datatype
         self.comment = comment
         self.source_col = source_col
@@ -209,15 +223,15 @@ class Column:
         return self.compile()
 
 
-class Table:
+class Table (ModelObject):
     def __init__(
-        self, name, columns=None, description=None, props=None, temp=False, **kwargs
+        self, name, columns=None, description=None, props=None, temp=False, tags=None, **kwargs
     ):
         """
         columns - dict of either (name:str, datatype:Datatype) or list of Column
         kwargs - column (name = datatype)
         """
-        self.name = name
+        super().__init__(name=name, tags=tags)
         self.props = props
         self.temp = temp
 
