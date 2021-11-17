@@ -15,12 +15,7 @@ import pandas as pd
 from io import StringIO
 from time import sleep
 
-try:
-    import ibis.backends.omniscidb as ibis_omniscidb
-except:
-    import ibis.omniscidb as ibis_omniscidb
 import ibis
-import omnisci_olio.pymapd
 import omnisci_olio.ibis
 
 import logging
@@ -220,7 +215,7 @@ def monitor_import(sleep_seconds=1, batch=100, tgt_file=None):
     df = None
     errors = 0
     while True:
-        with ibis_omniscidb.connect(os.environ["OMNISCI_DB_URL"]) as src:
+        with omnisci_olio.ibis.connect(os.environ["OMNISCI_DB_URL"]) as src:
             while True:
                 # log.debug(db_memory(src, detail=0))
                 try:
@@ -230,7 +225,7 @@ def monitor_import(sleep_seconds=1, batch=100, tgt_file=None):
                             with open(tgt_file, "a") as f:
                                 print(df.to_csv(f, header=False))
                         if "OMNISCI_DB_URL_TGT" in os.environ:
-                            with ibis_omniscidb.connect(
+                            with omnisci_olio.ibis.connect(
                                 os.environ["OMNISCI_DB_URL_TGT"]
                             ) as tgt:
                                 create_tables(tgt)

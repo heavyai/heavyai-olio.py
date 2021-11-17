@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="omnisci-olio",
-    version="0.2.0.dev2",
+    version="0.2.0.dev3",
     description="OmniSci DB: Python functions using pyomnici, Ibis and integration with various tools and datasets",
     author="Mike Hinchey",
     author_email="mike.hinchey@omnisci.com",
@@ -28,7 +28,7 @@ setup(
         # "ibis_omniscidb @ git+git://github.com/omnisci/ibis-omniscidb.git@master#egg=ibis-omniscidb",
         "sqlalchemy-omnisci",
         "prefect >= 0.15",
-        # TODO these are dependencies of pyomnisci, not installed by that yet
+        # TODO netifaces and thriftpy2 are dependencies of pyomnisci, not installed by that yet
         "netifaces",
         "thriftpy2",
     ],

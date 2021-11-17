@@ -10,17 +10,22 @@ from pathlib import Path
 import pandas as pd
 
 import pyomnisci
-import ibis
-import ibis_omniscidb
 
-# try:
-#     import ibis.backends.omniscidb as ibis_omniscidb
-# except:
-#     import ibis.omniscidb as ibis_omniscidb
+try:
+    import ibis
+
+    ibis_connect = ibis.omniscidb.connect
+    from ibis_omniscidb import Backend as OmniSciDBBackend
+except:
+    # pre-2.0 ibis and ibis_omniscidb
+    from ibis_omniscidb import connect as ibis_connect
+    from ibis_omniscidb import OmniSciDBClient as OmniSciDBBackend
 
 import pkg_resources
 import omnisci_olio.pymapd
 from omnisci_olio.pymapd import url_prompt
+
+from thriftpy2.parser.exc import ThriftGrammerError
 
 
 EXECUTION_TYPE_ICP = 1
@@ -28,7 +33,7 @@ EXECUTION_TYPE_ICP_GPU = 2
 EXECUTION_TYPE_CURSOR = 3
 
 
-class OmniSciIbisClient(ibis_omniscidb.OmniSciDBUDF):
+class OmniSciIbisClient(OmniSciDBBackend):
 
     # We can't yet pass a pymapd connection object to Ibis
     # and it does not support pymapd's binary TLS connections
@@ -123,8 +128,8 @@ def connect_prompt(
 
     u = url_prompt(url, username, password, host, port, database, protocol, lookup)
     # TODO BUG in ibis_omniscidb error passing the uri
-    # con = ibis_omniscidb.connect(url_prompt(url))
-    con = ibis.omniscidb.connect(
+    # con = ibis_connect(url_prompt(url))
+    con = ibis_connect(
         user=u.username,
         password=u.password,
         host=u.host,
@@ -141,7 +146,7 @@ def connect(uri=None):
             uri = os.environ["OMNISCI_DB_URL"]
         else:
             uri = "omnisci://admin:HyperInteractive@localhost:6274/omnisci"
-    return ibis.omniscidb.connect(uri=uri)
+    return ibis_connect(uri=uri)
 
 
 def connect_defaults(
@@ -180,8 +185,8 @@ def connect_defaults(
         param_prompt=omnisci_olio.pymapd.param_value,
     )
     # TODO BUG in ibis_omniscidb error passing the uri
-    # con = ibis_omniscidb.connect(url_prompt(url))
-    con = ibis.omniscidb.connect(
+    # con = ibis_connect(url_prompt(url))
+    con = ibis_connect(
         user=u.username,
         password=u.password,
         host=u.host,

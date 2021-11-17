@@ -6,9 +6,10 @@ from sqlalchemy.engine.url import URL
 from omnisci_olio.pymapd import url_prompt
 
 try:
-    import ibis.backends.omniscidb as ibis_omniscidb
+    from ibis_omniscidb import Backend as OmniSciDBBackend
 except:
-    import ibis.omniscidb as ibis_omniscidb
+    # pre-2.0 ibis and ibis_omniscidb
+    from ibis_omniscidb import OmniSciDBClient as OmniSciDBBackend
 
 
 def omnisql(con, text):
@@ -16,7 +17,7 @@ def omnisql(con, text):
     Usage:
         omniscidb_util.omnisql(con, '\\status')
     """
-    if isinstance(con, ibis_omniscidb.OmniSciDBClient):
+    if isinstance(con, OmniSciDBBackend):
         if con.protocol is not None and con.protocol != "binary":
             protocol_arg = ["--" + con.protocol]
         else:

@@ -11,13 +11,17 @@ from sqlalchemy.engine.url import make_url
 
 import prefect
 
-from thriftpy2.parser.exc import ThriftGrammerError
-
 import ibis
 import ibis_omniscidb
 
 import omnisci_olio.schema as sc
-import sqlalchemy_omnisci.base
+from omnisci_olio.ibis import connect as ibis_connect
+
+try:
+    from ibis_omniscidb import Backend as OmniSciDBBackend
+except:
+    # pre-2.0 ibis and ibis_omniscidb
+    from ibis_omniscidb import OmniSciDBClient as OmniSciDBBackend
 
 
 def logger():
@@ -185,7 +189,7 @@ class OmniSciDBClient:
                 raise Exception(
                     "A DB connection URL must be provided by one of: `con`, `uri` param, or env var `OMNISCI_DB_URL`"
                 )
-            self.con = db_connect(uri)
+            self.con = ibis_connect(uri)
 
         self._log_inited = False
         self._log_data = None
@@ -198,7 +202,7 @@ class OmniSciDBClient:
         else:
             log_uri = os.environ.get("OMNISCI_DB_LOG_URL", None)
             if log_uri:
-                self._log_con = db_connect(log_uri)
+                self._log_con = ibis_connect(log_uri)
 
                 uri = make_url(self.con.uri)
                 ss = self._server_status()
@@ -225,6 +229,8 @@ class OmniSciDBClient:
     ########################
 
     def clean_name(self, name, pretty=False):
+        from sqlalchemy_omnisci.base import RESERVED_WORDS
+
         name = name.strip(" ")
         name = name.replace("%", "pct")
         name = name.replace("<=", "le")
@@ -234,7 +240,7 @@ class OmniSciDBClient:
         name = name.replace("+", "plus")
         # name = name.replace("-", "minus")
         a = "".join([c if c.isalnum() else "_" for c in name.strip()])
-        b = (a + "_") if (a.upper() in sqlalchemy_omnisci.base.RESERVED_WORDS) else a
+        b = (a + "_") if (a.upper() in RESERVED_WORDS) else a
         if b[0].isdigit():
             b = "_" + b
         if pretty:
@@ -407,11 +413,13 @@ class OmniSciDBClient:
         process_rows=None,
         sql=None,
         tend=None,
+        error_count=None,
+        message=None,
         **kwargs,
     ):
         tend = tend or time()
         sources = list(set(self._names((sources or []) + self.sources)))
-        logi(
+        msg = str(dict(
             cmd=cmd,
             time_s=round(tend - tstart, 2),
             target=target,
@@ -420,21 +428,26 @@ class OmniSciDBClient:
             sources=sources,
             process_rows=process_rows,
             sql=sql,
+            error_count=error_count,
             **kwargs,
-        )
+        ))
+        if error_count and error_count > 0:
+            logger().error(msg)
+        else:
+            logger().info(msg)
         self._insert_log(
-            tstart,
-            None,
-            cmd,
-            sql,
-            target,
-            process_rows,
-            None,
-            ct_before,
-            ct_after,
-            None,
-            None,
-            None,
+            start_time=tstart,
+            src_paths=None,
+            operation=cmd,
+            command=sql,
+            tgt_table=target,
+            process_rows=process_rows,
+            error_count=error_count,
+            rows_before=ct_before,
+            rows_after=ct_after,
+            data_timestamp=None,
+            update_key=None,
+            message=message,
             src_tables=sources,
         )
 
@@ -556,6 +569,15 @@ class OmniSciDBClient:
         else:
             return ""
 
+    def explain(self, query, plan_type=""):
+        """
+        plan_type: "" (default), "PLAN", or "CALCITE"
+        """
+        return self.con.con.execute(f"EXPLAIN {plan_type} " + self.to_sql(query)).fetchone()[0]
+
+    def show_create_table(self, tn):
+        self.con.execute(f"SHOW CREATE TABLE {tn}").fetchone()[0]
+
     def create_table(self, table, ddl, drop=False):
         tn = self._name(table)
         if drop:
@@ -616,7 +638,7 @@ class OmniSciDBClient:
             t = self.table(table)
             if src_col in t.columns:
                 self.exec_update(
-                    to_table,
+                    table,
                     f"""ALTER TABLE {table} RENAME COLUMN {src_col} TOD {tgt_col}""",
                     cmd="RENAME",
                     sources=[table],
@@ -685,7 +707,7 @@ class OmniSciDBClient:
     def copy_to(self, table_name, from_expr, to_filename, **kwargs):
         props = self._with_props(kwargs)
         q = f"""COPY ( {self.to_sql(from_expr)} ) TO '{to_filename}' {props};"""
-        return self.exec_update(table_name, q, sources=[table_name], cmd="COPY TO")
+        return self.exec_update(None, q, sources=[table_name], cmd="COPY TO")
 
     def copy_to_and_from(
         self, src_table, from_expr, tgt_table, ddl=None, drop=False, **kwargs
@@ -907,26 +929,6 @@ def col_renames(appendage, *cols):
     return [col.name(col.get_name() + appendage) for col in cols]
 
 
-def db_connect(uri, max_retries=3):
-    try:
-        return ibis.omniscidb.connect(uri=uri)
-    except (ThriftGrammerError, FileNotFoundError) as e:
-        if max_retries <= 0:
-            raise e
-        else:
-            # When running within dask and multiprocessing,
-            # something in rbc and thriftpy2 raises exceptions like this
-            # but they are not important, so workaround is to just try again.
-            #     ThriftGrammerError: Grammer error ',' at line 144
-            #     FileNotFoundError: [Errno 2] No such file or directory: '/jhub_omnisci_dropbox/tmp/rpc-client-ak233236.thrift'
-            log_warning(
-                msg="thrift connection error, trying again",
-                max_retries=max_retries,
-                exception=e,
-            )
-            return db_connect(uri, max_retries=max_retries - 1)
-
-
 def connect(con=None, close_on_exit=True):
     """
     Connect to OmniSciDB.
@@ -967,7 +969,7 @@ def connect(con=None, close_on_exit=True):
     elif isinstance(con, OmniSciDBClient):
         # return con
         return OmniSciDBClient(_other=con, close_on_exit=False)
-    elif isinstance(con, ibis.omniscidb):
+    elif isinstance(con, OmniSciDBBackend):
         return OmniSciDBClient(con=con, close_on_exit=False)
     else:
         raise Exception("Unrecognized type: %s" % type(con))
