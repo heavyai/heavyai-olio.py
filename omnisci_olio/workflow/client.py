@@ -173,6 +173,7 @@ class OmniSciDBClient:
         close_on_exit=True,
         _other=None,
         dryrun=False,
+        log_uri=None,
     ):
         self.close_on_exit = close_on_exit
         self.sources = []
@@ -200,7 +201,7 @@ class OmniSciDBClient:
             self._log_data = _other._log_data
             self._log_con = _other._log_con
         else:
-            log_uri = os.environ.get("OMNISCI_DB_LOG_URL", None)
+            log_uri = log_uri or os.environ.get("OMNISCI_DB_LOG_URL", None)
             if log_uri:
                 self._log_con = ibis_connect(log_uri)
 
@@ -639,10 +640,18 @@ class OmniSciDBClient:
             if src_col in t.columns:
                 self.exec_update(
                     table,
-                    f"""ALTER TABLE {table} RENAME COLUMN {src_col} TOD {tgt_col}""",
+                    f"""ALTER TABLE {table} RENAME COLUMN {src_col} TO {tgt_col}""",
                     cmd="RENAME",
                     sources=[table],
                 )
+
+    def alter_table_add_column(self, col):
+        self.exec_update(
+            col.table,
+            col.compile_add(),
+            cmd="ADD COLUMN",
+            sources=[table],
+        )
 
     def delete_where(self, table_name, where_sql):
         return self.exec_update(

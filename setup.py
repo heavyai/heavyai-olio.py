@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="omnisci-olio",
-    version="0.2.0.dev3",
+    version="0.2.0.dev4",
     description="OmniSci DB: Python functions using pyomnici, Ibis and integration with various tools and datasets",
     author="Mike Hinchey",
     author_email="mike.hinchey@omnisci.com",
@@ -22,15 +22,10 @@ setup(
     ],
     install_requires=[
         "pandas",
-        # TODO we should specify min versions, but these, when mamba-installed report 0.0.0 to pip
-        "pyomnisci",  # >= 0.27.0
-        "pyomniscidb",  #  >= 5.6.4.1
-        "ibis_omniscidb",  # >= 2.0.1
-        # "ibis_omniscidb @ git+git://github.com/omnisci/ibis-omniscidb.git@master#egg=ibis-omniscidb",
-        "sqlalchemy-omnisci",
+        "pyomnisci >= 0.28.2",
+        "pyomniscidb >= 5.8.0",
+        "ibis_omniscidb >= 2.0.4",
+        "sqlalchemy-omnisci >= 0.1.3",
         "prefect >= 0.15",
-        # TODO netifaces and thriftpy2 are dependencies of pyomnisci, not installed by that yet
-        "netifaces",
-        "thriftpy2",
     ],
 )

@@ -218,6 +218,9 @@ class Column (ModelObject):
             return f"SHARD KEY ({self.name})"
         else:
             return None
+    
+    def compile_add(self):
+        return f"""ALTER TABLE {self.table.name} ADD COLUMN {self.compile()}""",
 
     def __str__(self):
         return self.compile()

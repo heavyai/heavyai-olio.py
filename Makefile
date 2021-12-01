@@ -3,26 +3,10 @@ SHELL = /bin/sh
 
 DB_CONTAINER = omnisci_test
 PYTHON = 3.8
-OMNISCI_VERSION = v5.8.0
+OMNISCI_VERSION = v5.9.0
 # OMNISCI_VERSION = latest
 
 -include .env
-
-init:
-	mamba env create -f ./environment.yml
-
-init.gpu:
-	mamba env create -f ./environment_gpu.yml
-
-deps:
-	mamba install -y pytest black
-.PHONY: deps
-
-update:
-	mamba env update -f ./environment.yml
-
-update.gpu:
-	mamba env update -f ./environment_gpu.yml
 
 develop:
 	pip install -e '.[dev]'
