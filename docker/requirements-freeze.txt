@@ -1,0 +1,376 @@
+List of packages in environment: "/opt/conda"
+ Name Version Build Channel 
+──────────────────────────────────────────────────────────────────────────────────────
+ _libgcc_mutex 0.1 conda_forge conda-forge/linux-64
+ _openmp_mutex 4.5 1_gnu conda-forge/linux-64
+ abseil-cpp 20210324.2 h9c3ff4c_0 conda-forge/linux-64
+ appdirs 1.4.4 pyh9f0ad1d_0 conda-forge/noarch 
+ arrow-cpp 3.0.0 py38h87e2ab4_37_cpu conda-forge/linux-64
+ asn1crypto 1.4.0 pyh9f0ad1d_0 conda-forge/noarch 
+ atk-1.0 2.36.0 h3371d22_4 conda-forge/linux-64
+ attrs 21.2.0 pyhd8ed1ab_0 conda-forge/noarch 
+ aws-c-auth 0.6.8 hfef2836_0 conda-forge/linux-64
+ aws-c-cal 0.5.12 h70efedd_7 conda-forge/linux-64
+ aws-c-common 0.6.17 h7f98852_0 conda-forge/linux-64
+ aws-c-compression 0.2.14 h7c7754b_7 conda-forge/linux-64
+ aws-c-event-stream 0.2.7 hb80ed28_31 conda-forge/linux-64
+ aws-c-http 0.6.10 h58a30cf_2 conda-forge/linux-64
+ aws-c-io 0.10.13 he836878_5 conda-forge/linux-64
+ aws-c-mqtt 0.7.9 h042a236_0 conda-forge/linux-64
+ aws-c-s3 0.1.27 h4f4cd48_12 conda-forge/linux-64
+ aws-c-sdkutils 0.1.1 h7c7754b_4 conda-forge/linux-64
+ aws-checksums 0.1.12 h7c7754b_6 conda-forge/linux-64
+ aws-crt-cpp 0.17.9 hc7d31a4_1 conda-forge/linux-64
+ aws-sdk-cpp 1.9.154 h77f1c7e_0 conda-forge/linux-64
+ boost-cpp 1.74.0 h312852a_4 conda-forge/linux-64
+ brotli 1.0.9 h7f98852_6 conda-forge/linux-64
+ brotli-bin 1.0.9 h7f98852_6 conda-forge/linux-64
+ brotlipy 0.7.0 py38h497a2fe_1003 conda-forge/linux-64
+ bzip2 1.0.8 h7f98852_4 conda-forge/linux-64
+ c-ares 1.18.1 h7f98852_0 conda-forge/linux-64
+ ca-certificates 2021.10.8 ha878542_0 conda-forge/linux-64
+ cached_property 1.5.2 pyha770c72_1 conda-forge/noarch 
+ cairo 1.16.0 h6cf1ce9_1008 conda-forge/linux-64
+ certifi 2021.10.8 py38h578d9bd_1 conda-forge/linux-64
+ cffi 1.15.0 py38h3931269_0 conda-forge/linux-64
+ cfitsio 3.470 hb418390_7 conda-forge/linux-64
+ charset-normalizer 2.0.9 pyhd8ed1ab_0 conda-forge/noarch 
+ click 8.0.3 py38h578d9bd_1 conda-forge/linux-64
+ click-plugins 1.1.1 py_0 conda-forge/noarch 
+ cligj 0.7.2 pyhd8ed1ab_1 conda-forge/noarch 
+ cloudpickle 2.0.0 pyhd8ed1ab_0 conda-forge/noarch 
+ croniter 0.3.36 pyhd8ed1ab_0 conda-forge/noarch 
+ cryptography 36.0.0 py38h3e25421_0 conda-forge/linux-64
+ curl 7.80.0 h2574ce0_0 conda-forge/linux-64
+ cycler 0.11.0 pyhd8ed1ab_0 conda-forge/noarch 
+ cytoolz 0.11.2 py38h497a2fe_1 conda-forge/linux-64
+ dask-core 2021.11.2 pyhd8ed1ab_0 conda-forge/noarch 
+ distributed 2021.11.2 py38h578d9bd_0 conda-forge/linux-64
+ docker-py 5.0.3 py38h578d9bd_2 conda-forge/linux-64
+ docker-pycreds 0.4.0 py_0 conda-forge/noarch 
+ expat 2.4.1 h9c3ff4c_0 conda-forge/linux-64
+ fiona 1.8.20 py38hbb147eb_2 conda-forge/linux-64
+ font-ttf-dejavu-sans-mono 2.37 hab24e00_0 conda-forge/noarch 
+ font-ttf-inconsolata 3.000 h77eed37_0 conda-forge/noarch 
+ font-ttf-source-code-pro 2.038 h77eed37_0 conda-forge/noarch 
+ font-ttf-ubuntu 0.83 hab24e00_0 conda-forge/noarch 
+ fontconfig 2.13.1 hba837de_1005 conda-forge/linux-64
+ fonts-conda-ecosystem 1 0 conda-forge/noarch 
+ fonts-conda-forge 1 0 conda-forge/noarch 
+ fonttools 4.28.3 py38h497a2fe_0 conda-forge/linux-64
+ freetype 2.10.4 h0708190_1 conda-forge/linux-64
+ freexl 1.0.6 h7f98852_0 conda-forge/linux-64
+ fribidi 1.0.10 h36c2ea0_0 conda-forge/linux-64
+ fsspec 2021.11.1 pyhd8ed1ab_0 conda-forge/noarch 
+ gdal 3.3.2 py38h81a01a0_4 conda-forge/linux-64
+ gdk-pixbuf 2.42.6 h04a7f16_0 conda-forge/linux-64
+ geopandas 0.9.0 pyhd8ed1ab_1 conda-forge/noarch 
+ geopandas-base 0.9.0 pyhd8ed1ab_1 conda-forge/noarch 
+ geos 3.9.1 h9c3ff4c_2 conda-forge/linux-64
+ geotiff 1.7.0 hcfb7246_3 conda-forge/linux-64
+ gettext 0.19.8.1 h73d1719_1008 conda-forge/linux-64
+ gflags 2.2.2 he1b5a44_1004 conda-forge/linux-64
+ giflib 5.2.1 h36c2ea0_2 conda-forge/linux-64
+ glog 0.5.0 h48cff8f_0 conda-forge/linux-64
+ graphite2 1.3.13 h58526e2_1001 conda-forge/linux-64
+ graphviz 2.50.0 h85b4f2f_0 conda-forge/linux-64
+ greenlet 1.1.2 py38h709712a_1 conda-forge/linux-64
+ grpc-cpp 1.42.0 h7e358d9_0 conda-forge/linux-64
+ gtk2 2.24.33 h539f30e_1 conda-forge/linux-64
+ gts 0.7.6 h64030ff_2 conda-forge/linux-64
+ harfbuzz 3.1.1 h83ec7ef_0 conda-forge/linux-64
+ hdf4 4.2.15 h10796ff_3 conda-forge/linux-64
+ hdf5 1.12.1 nompi_h2750804_103 conda-forge/linux-64
+ heapdict 1.0.1 py_0 conda-forge/noarch 
+ ibis-framework-core 2.0.0 pyhd8ed1ab_1 conda-forge/noarch 
+ ibis-omniscidb 2.0.4 pyhd8ed1ab_1 conda-forge/noarch 
+ icu 68.2 h9c3ff4c_0 conda-forge/linux-64
+ idna 3.1 pyhd3deb0d_0 conda-forge/noarch 
+ importlib_resources 5.4.0 pyhd8ed1ab_0 conda-forge/noarch 
+ jbig 2.1 h7f98852_2003 conda-forge/linux-64
+ jinja2 3.0.3 pyhd8ed1ab_0 conda-forge/noarch 
+ joblib 1.1.0 pyhd8ed1ab_0 conda-forge/noarch 
+ jpeg 9d h36c2ea0_0 conda-forge/linux-64
+ json-c 0.15 h98cffda_0 conda-forge/linux-64
+ kealib 1.4.14 h87e4c3c_3 conda-forge/linux-64
+ kiwisolver 1.3.2 py38h1fd1430_1 conda-forge/linux-64
+ krb5 1.19.2 hcc1bbae_3 conda-forge/linux-64
+ lcms2 2.12 hddcbb42_0 conda-forge/linux-64
+ ld_impl_linux-64 2.36.1 hea4e1c9_2 conda-forge/linux-64
+ lerc 3.0 h9c3ff4c_0 conda-forge/linux-64
+ libblas 3.9.0 12_linux64_openblas conda-forge/linux-64
+ libbrotlicommon 1.0.9 h7f98852_6 conda-forge/linux-64
+ libbrotlidec 1.0.9 h7f98852_6 conda-forge/linux-64
+ libbrotlienc 1.0.9 h7f98852_6 conda-forge/linux-64
+ libcblas 3.9.0 12_linux64_openblas conda-forge/linux-64
+ libcurl 7.80.0 h2574ce0_0 conda-forge/linux-64
+ libdap4 3.20.6 hd7c4107_2 conda-forge/linux-64
+ libdeflate 1.8 h7f98852_0 conda-forge/linux-64
+ libedit 3.1.20191231 he28a2e2_2 conda-forge/linux-64
+ libev 4.33 h516909a_1 conda-forge/linux-64
+ libevent 2.1.10 h9b69904_4 conda-forge/linux-64
+ libffi 3.4.2 h7f98852_5 conda-forge/linux-64
+ libgcc-ng 11.2.0 h1d223b6_11 conda-forge/linux-64
+ libgd 2.3.3 h6ad9fb6_0 conda-forge/linux-64
+ libgdal 3.3.2 h9c9eb65_4 conda-forge/linux-64
+ libgfortran-ng 11.2.0 h69a702a_11 conda-forge/linux-64
+ libgfortran5 11.2.0 h5c6108e_11 conda-forge/linux-64
+ libglib 2.70.2 h174f98d_0 conda-forge/linux-64
+ libgomp 11.2.0 h1d223b6_11 conda-forge/linux-64
+ libiconv 1.16 h516909a_0 conda-forge/linux-64
+ libkml 1.3.0 h238a007_1014 conda-forge/linux-64
+ liblapack 3.9.0 12_linux64_openblas conda-forge/linux-64
+ libllvm10 10.0.1 he513fc3_3 conda-forge/linux-64
+ libnetcdf 4.8.1 nompi_hb3fd0d9_101 conda-forge/linux-64
+ libnghttp2 1.43.0 h812cca2_1 conda-forge/linux-64
+ libnsl 2.0.0 h7f98852_0 conda-forge/linux-64
+ libopenblas 0.3.18 pthreads_h8fe5266_0 conda-forge/linux-64
+ libpng 1.6.37 h21135ba_2 conda-forge/linux-64
+ libpq 13.5 hd57d9b9_1 conda-forge/linux-64
+ libprotobuf 3.18.1 h780b84a_0 conda-forge/linux-64
+ librsvg 2.52.4 hc3c00ef_0 conda-forge/linux-64
+ librttopo 1.1.0 h1185371_6 conda-forge/linux-64
+ libspatialindex 1.9.3 h9c3ff4c_4 conda-forge/linux-64
+ libspatialite 5.0.1 h8796b1e_9 conda-forge/linux-64
+ libssh2 1.10.0 ha56f1ee_2 conda-forge/linux-64
+ libstdcxx-ng 11.2.0 he4da1e4_11 conda-forge/linux-64
+ libthrift 0.15.0 he6d91bd_1 conda-forge/linux-64
+ libtiff 4.3.0 h6f004c6_2 conda-forge/linux-64
+ libtool 2.4.6 h9c3ff4c_1008 conda-forge/linux-64
+ libutf8proc 2.6.1 h7f98852_0 conda-forge/linux-64
+ libuuid 2.32.1 h7f98852_1000 conda-forge/linux-64
+ libwebp 1.2.1 h3452ae3_0 conda-forge/linux-64
+ libwebp-base 1.2.1 h7f98852_0 conda-forge/linux-64
+ libxcb 1.13 h7f98852_1004 conda-forge/linux-64
+ libxml2 2.9.12 h72842e0_0 conda-forge/linux-64
+ libzip 1.8.0 h4de3113_1 conda-forge/linux-64
+ libzlib 1.2.11 h36c2ea0_1013 conda-forge/linux-64
+ llvmlite 0.36.0 py38h4630a5e_0 conda-forge/linux-64
+ locket 0.2.0 py_2 conda-forge/noarch 
+ lz4-c 1.9.3 h9c3ff4c_1 conda-forge/linux-64
+ mapclassify 2.4.3 pyhd8ed1ab_0 conda-forge/noarch 
+ markupsafe 2.0.1 py38h497a2fe_1 conda-forge/linux-64
+ marshmallow 3.14.1 pyhd8ed1ab_0 conda-forge/noarch 
+ marshmallow-oneofschema 3.0.1 pyhd8ed1ab_0 conda-forge/noarch 
+ matplotlib-base 3.5.0 py38hf4fb855_0 conda-forge/linux-64
+ msgpack-python 1.0.3 py38h1fd1430_0 conda-forge/linux-64
+ multipledispatch 0.6.0 py_0 conda-forge/noarch 
+ munch 2.5.0 py_0 conda-forge/noarch 
+ munkres 1.1.4 pyh9f0ad1d_0 conda-forge/noarch 
+ mypy_extensions 0.4.3 py38h578d9bd_4 conda-forge/linux-64
+ natsort 8.0.0 pyhd8ed1ab_0 conda-forge/noarch 
+ ncurses 6.2 h58526e2_4 conda-forge/linux-64
+ netifaces 0.10.9 py38h497a2fe_1004 conda-forge/linux-64
+ networkx 2.6.3 pyhd8ed1ab_1 conda-forge/noarch 
+ nspr 4.32 h9c3ff4c_1 conda-forge/linux-64
+ nss 3.73 hb5efdd6_0 conda-forge/linux-64
+ numba 0.53.1 py38h8b71fd7_1 conda-forge/linux-64
+ numpy 1.21.4 py38he2449b9_0 conda-forge/linux-64
+ olefile 0.46 pyh9f0ad1d_1 conda-forge/noarch 
+ openjpeg 2.4.0 hb52868f_1 conda-forge/linux-64
+ openssl 1.1.1l h7f98852_0 conda-forge/linux-64
+ orc 1.7.1 h68e2c4e_0 conda-forge/linux-64
+ packaging 21.3 pyhd8ed1ab_0 conda-forge/noarch 
+ pandas 1.3.4 py38h43a58ef_1 conda-forge/linux-64
+ pango 1.48.10 h54213e6_2 conda-forge/linux-64
+ parquet-cpp 1.5.1 1 conda-forge/linux-64
+ parsy 1.3.0 pyhd8ed1ab_0 conda-forge/noarch 
+ partd 1.2.0 pyhd8ed1ab_0 conda-forge/noarch 
+ pcre 8.45 h9c3ff4c_0 conda-forge/linux-64
+ pendulum 2.1.2 py38h32f6830_0 conda-forge/linux-64
+ pillow 8.4.0 py38h8e6f84c_0 conda-forge/linux-64
+ pip 21.3.1 pyhd8ed1ab_0 conda-forge/noarch 
+ pixman 0.40.0 h36c2ea0_0 conda-forge/linux-64
+ ply 3.11 py_1 conda-forge/noarch 
+ poppler 21.09.0 ha39eefc_3 conda-forge/linux-64
+ poppler-data 0.4.11 hd8ed1ab_0 conda-forge/noarch 
+ postgresql 13.5 h2510834_1 conda-forge/linux-64
+ prefect 0.15.9 pyhd8ed1ab_0 conda-forge/noarch 
+ proj 8.1.1 h277dcde_2 conda-forge/linux-64
+ psutil 5.8.0 py38h497a2fe_2 conda-forge/linux-64
+ pthread-stubs 0.4 h36c2ea0_1001 conda-forge/linux-64
+ pyarrow 3.0.0 py38he7e5f7d_37_cpu conda-forge/linux-64
+ pycparser 2.21 pyhd8ed1ab_0 conda-forge/noarch 
+ pygeos 0.10.2 py38hb7fe4a8_0 conda-forge/linux-64
+ pyomnisci 0.28.2 pyhd8ed1ab_1 conda-forge/noarch 
+ pyomniscidb 5.8.0 py37h1234567_1 conda-forge/noarch 
+ pyopenssl 21.0.0 pyhd8ed1ab_0 conda-forge/noarch 
+ pyparsing 3.0.6 pyhd8ed1ab_0 conda-forge/noarch 
+ pyproj 3.2.1 py38h80797bf_2 conda-forge/linux-64
+ pysocks 1.7.1 py38h578d9bd_4 conda-forge/linux-64
+ python 3.8.12 hb7a2778_2_cpython conda-forge/linux-64
+ python-box 5.4.1 pyhd8ed1ab_0 conda-forge/noarch 
+ python-dateutil 2.8.2 pyhd8ed1ab_0 conda-forge/noarch 
+ python-dotenv 0.19.2 pyhd8ed1ab_0 conda-forge/noarch 
+ python-graphviz 0.19 pyhaef67bd_0 conda-forge/noarch 
+ python-slugify 5.0.2 pyhd8ed1ab_0 conda-forge/noarch 
+ python_abi 3.8 2_cp38 conda-forge/linux-64
+ pytz 2021.3 pyhd8ed1ab_0 conda-forge/noarch 
+ pytzdata 2020.1 pyh9f0ad1d_0 conda-forge/noarch 
+ pyyaml 6.0 py38h497a2fe_3 conda-forge/linux-64
+ rbc 0.6.1 py38h578d9bd_0 conda-forge/linux-64
+ re2 2021.11.01 h9c3ff4c_0 conda-forge/linux-64
+ readline 8.1 h46c0cb4_0 conda-forge/linux-64
+ regex 2021.11.10 py38h497a2fe_0 conda-forge/linux-64
+ requests 2.26.0 pyhd8ed1ab_1 conda-forge/noarch 
+ rtree 0.9.7 py38h02d302b_3 conda-forge/linux-64
+ ruamel.yaml 0.17.17 py38h497a2fe_1 conda-forge/linux-64
+ ruamel.yaml.clib 0.2.6 py38h497a2fe_0 conda-forge/linux-64
+ s2n 1.3.0 h9b69904_0 conda-forge/linux-64
+ scikit-learn 1.0.1 py38h1561384_2 conda-forge/linux-64
+ scipy 1.7.3 py38h56a6a73_0 conda-forge/linux-64
+ setuptools 59.4.0 py38h578d9bd_0 conda-forge/linux-64
+ shapely 1.7.1 py38hb7fe4a8_5 conda-forge/linux-64
+ six 1.16.0 pyh6c4a22f_0 conda-forge/noarch 
+ snappy 1.1.8 he1b5a44_3 conda-forge/linux-64
+ sortedcontainers 2.4.0 pyhd8ed1ab_0 conda-forge/noarch 
+ sqlalchemy 1.4.27 py38h497a2fe_0 conda-forge/linux-64
+ sqlalchemy-omnisci 0.1.3 pyhd8ed1ab_1 conda-forge/noarch 
+ sqlite 3.37.0 h9cd32fc_0 conda-forge/linux-64
+ sqlparse 0.4.2 pyhd8ed1ab_0 conda-forge/noarch 
+ tabulate 0.8.9 pyhd8ed1ab_0 conda-forge/noarch 
+ tblib 1.7.0 pyhd8ed1ab_0 conda-forge/noarch 
+ text-unidecode 1.3 py_0 conda-forge/noarch 
+ threadpoolctl 3.0.0 pyh8a188c0_0 conda-forge/noarch 
+ thrift 0.13.0 py38h709712a_2 conda-forge/linux-64
+ thriftpy2 0.4.14 py38h497a2fe_1 conda-forge/linux-64
+ tiledb 2.3.4 he87e0bf_0 conda-forge/linux-64
+ tk 8.6.11 h27826a3_1 conda-forge/linux-64
+ toml 0.10.2 pyhd8ed1ab_0 conda-forge/noarch 
+ toolz 0.11.2 pyhd8ed1ab_0 conda-forge/noarch 
+ tornado 6.1 py38h497a2fe_2 conda-forge/linux-64
+ tzcode 2021e h7f98852_0 conda-forge/linux-64
+ tzdata 2021e he74cb21_0 conda-forge/noarch 
+ unicodedata2 13.0.0.post2 py38h497a2fe_4 conda-forge/linux-64
+ unidecode 1.3.2 pyhd8ed1ab_0 conda-forge/noarch 
+ urllib3 1.26.7 pyhd8ed1ab_0 conda-forge/noarch 
+ websocket-client 1.2.2 pyhd8ed1ab_0 conda-forge/noarch 
+ wheel 0.37.0 pyhd8ed1ab_1 conda-forge/noarch 
+ xerces-c 3.2.3 h9d8b166_3 conda-forge/linux-64
+ xorg-kbproto 1.0.7 h7f98852_1002 conda-forge/linux-64
+ xorg-libice 1.0.10 h7f98852_0 conda-forge/linux-64
+ xorg-libsm 1.2.3 hd9c2040_1000 conda-forge/linux-64
+ xorg-libx11 1.7.2 h7f98852_0 conda-forge/linux-64
+ xorg-libxau 1.0.9 h7f98852_0 conda-forge/linux-64
+ xorg-libxdmcp 1.1.3 h7f98852_0 conda-forge/linux-64
+ xorg-libxext 1.3.4 h7f98852_1 conda-forge/linux-64
+ xorg-libxrender 0.9.10 h7f98852_1003 conda-forge/linux-64
+ xorg-renderproto 0.11.1 h7f98852_1002 conda-forge/linux-64
+ xorg-xextproto 7.3.0 h7f98852_1002 conda-forge/linux-64
+ xorg-xproto 7.0.31 h7f98852_1007 conda-forge/linux-64
+ xz 5.2.5 h516909a_1 conda-forge/linux-64
+ yaml 0.2.5 h516909a_0 conda-forge/linux-64
+ zict 2.0.0 py_0 conda-forge/noarch 
+ zipp 3.6.0 pyhd8ed1ab_0 conda-forge/noarch 
+ zlib 1.2.11 h36c2ea0_1013 conda-forge/linux-64
+ zstd 1.5.0 ha95c52a_0 conda-forge/linux-64
+[31mERROR: Error [Errno 2] No such file or directory: 'git' while executing command git config --get-regexp 'remote\..*\.url'[0m
+[33mWARNING: cannot determine version of editable source in /src/omnisci-olio.py (git command not found in path)[0m
+appdirs @ file:///home/conda/feedstock_root/build_artifacts/appdirs_1603108395799/work
+asn1crypto @ file:///home/conda/feedstock_root/build_artifacts/asn1crypto_1595949944546/work
+attrs @ file:///home/conda/feedstock_root/build_artifacts/attrs_1620387926260/work
+brotlipy @ file:///home/conda/feedstock_root/build_artifacts/brotlipy_1636012188166/work
+cached-property @ file:///home/conda/feedstock_root/build_artifacts/cached_property_1615209429212/work
+certifi==2021.10.8
+cffi @ file:///home/conda/feedstock_root/build_artifacts/cffi_1636046063618/work
+charset-normalizer @ file:///home/conda/feedstock_root/build_artifacts/charset-normalizer_1638815705608/work
+click @ file:///home/conda/feedstock_root/build_artifacts/click_1635822600067/work
+click-plugins==1.1.1
+cligj @ file:///home/conda/feedstock_root/build_artifacts/cligj_1633637764473/work
+cloudpickle @ file:///home/conda/feedstock_root/build_artifacts/cloudpickle_1631273254894/work
+croniter @ file:///home/conda/feedstock_root/build_artifacts/croniter_1604369816489/work/dist
+cryptography @ file:///home/conda/feedstock_root/build_artifacts/cryptography_1637648687087/work
+cycler @ file:///home/conda/feedstock_root/build_artifacts/cycler_1635519461629/work
+cytoolz==0.11.2
+dask @ file:///home/conda/feedstock_root/build_artifacts/dask-core_1637368457847/work
+distributed @ file:///home/conda/feedstock_root/build_artifacts/distributed_1637378469370/work
+docker @ file:///home/conda/feedstock_root/build_artifacts/docker-py_1638897295354/work
+docker-pycreds==0.4.0
+Fiona==1.8.20
+fonttools @ file:///home/conda/feedstock_root/build_artifacts/fonttools_1638544271762/work
+fsspec @ file:///home/conda/feedstock_root/build_artifacts/fsspec_1637975854575/work
+GDAL==3.3.2
+geopandas @ file:///home/conda/feedstock_root/build_artifacts/geopandas_1623249625470/work
+graphviz @ file:///home/conda/feedstock_root/build_artifacts/python-graphviz_1638137877106/work
+greenlet @ file:///home/conda/feedstock_root/build_artifacts/greenlet_1635836784510/work
+HeapDict==1.0.1
+ibis-framework @ file:///home/conda/feedstock_root/build_artifacts/ibis-framework-ext_1635986788634/work
+ibis-omniscidb @ file:///home/conda/feedstock_root/build_artifacts/ibis-omniscidb_1637532477709/work
+idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1609836280497/work
+importlib-resources @ file:///home/conda/feedstock_root/build_artifacts/importlib_resources_1635615662634/work
+Jinja2 @ file:///home/conda/feedstock_root/build_artifacts/jinja2_1636510082894/work
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1633637554808/work
+kiwisolver @ file:///home/conda/feedstock_root/build_artifacts/kiwisolver_1635836691365/work
+llvmlite==0.36.0
+locket==0.2.0
+mapclassify @ file:///home/conda/feedstock_root/build_artifacts/mapclassify_1627363180059/work
+MarkupSafe @ file:///home/conda/feedstock_root/build_artifacts/markupsafe_1635833572614/work
+marshmallow @ file:///home/conda/feedstock_root/build_artifacts/marshmallow_1636990308357/work
+marshmallow-oneofschema @ file:///home/conda/feedstock_root/build_artifacts/marshmallow-oneofschema_1625707901050/work
+matplotlib @ file:///home/conda/feedstock_root/build_artifacts/matplotlib-suite_1637205122833/work
+msgpack @ file:///home/conda/feedstock_root/build_artifacts/msgpack-python_1637771276381/work
+multipledispatch==0.6.0
+munch==2.5.0
+munkres==1.1.4
+mypy-extensions @ file:///home/conda/feedstock_root/build_artifacts/mypy_extensions_1635839660470/work
+natsort @ file:///home/conda/feedstock_root/build_artifacts/natsort_1635958681648/work
+netifaces @ file:///home/conda/feedstock_root/build_artifacts/netifaces_1635858920747/work
+networkx @ file:///home/conda/feedstock_root/build_artifacts/networkx_1635253012265/work
+numba @ file:///home/conda/feedstock_root/build_artifacts/numba_1623568544775/work
+numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1636145332760/work
+olefile @ file:///home/conda/feedstock_root/build_artifacts/olefile_1602866521163/work
+-e /src/omnisci-olio.py
+packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1637239678211/work
+pandas==1.3.4
+parsy @ file:///home/conda/feedstock_root/build_artifacts/parsy_1631651608325/work
+partd @ file:///home/conda/feedstock_root/build_artifacts/partd_1617910651905/work
+pendulum @ file:///home/conda/feedstock_root/build_artifacts/pendulum_1595694471274/work
+Pillow @ file:///home/conda/feedstock_root/build_artifacts/pillow_1636558800772/work
+ply==3.11
+prefect @ file:///home/conda/feedstock_root/build_artifacts/prefect_1636645543151/work
+psutil @ file:///home/conda/feedstock_root/build_artifacts/psutil_1635822683783/work
+pyarrow==3.0.0
+pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1636257122734/work
+pygeos @ file:///home/conda/feedstock_root/build_artifacts/pygeos_1629724768668/work
+pyomnisci @ file:///home/conda/feedstock_root/build_artifacts/pyomnisci_1637331798361/work
+pyomniscidb==5.8.0
+pyOpenSSL @ file:///home/conda/feedstock_root/build_artifacts/pyopenssl_1633192417276/work
+pyparsing @ file:///home/conda/feedstock_root/build_artifacts/pyparsing_1636757021002/work
+pyproj @ file:///home/conda/feedstock_root/build_artifacts/pyproj_1633060551313/work
+PySocks @ file:///home/conda/feedstock_root/build_artifacts/pysocks_1635862404924/work
+python-box @ file:///home/conda/feedstock_root/build_artifacts/python-box_1629655876446/work
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1626286286081/work
+python-dotenv @ file:///home/conda/feedstock_root/build_artifacts/python-dotenv_1636649191224/work
+python-slugify @ file:///home/conda/feedstock_root/build_artifacts/python-slugify_1620267765676/work
+pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1633452062248/work
+pytzdata @ file:///home/conda/feedstock_root/build_artifacts/pytzdata_1594644346367/work
+PyYAML @ file:///home/conda/feedstock_root/build_artifacts/pyyaml_1636139793187/work
+rbc-project @ file:///home/conda/feedstock_root/build_artifacts/rbc_1633590581346/work
+regex @ file:///home/conda/feedstock_root/build_artifacts/regex_1636504134936/work
+requests @ file:///home/conda/feedstock_root/build_artifacts/requests_1637771257551/work
+Rtree @ file:///home/conda/feedstock_root/build_artifacts/rtree_1637430736605/work
+ruamel.yaml @ file:///home/conda/feedstock_root/build_artifacts/ruamel.yaml_1636890707084/work
+ruamel.yaml.clib @ file:///home/conda/feedstock_root/build_artifacts/ruamel.yaml.clib_1636815630003/work
+scikit-learn @ file:///home/conda/feedstock_root/build_artifacts/scikit-learn_1636784024552/work
+scipy @ file:///home/conda/feedstock_root/build_artifacts/scipy_1637806659039/work
+Shapely @ file:///home/conda/feedstock_root/build_artifacts/shapely_1628205368277/work
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
+sortedcontainers @ file:///home/conda/feedstock_root/build_artifacts/sortedcontainers_1621217038088/work
+SQLAlchemy @ file:///home/conda/feedstock_root/build_artifacts/sqlalchemy_1636657153355/work
+sqlalchemy-omnisci @ file:///home/conda/feedstock_root/build_artifacts/sqlalchemy-omnisci_1637333286516/work
+sqlparse @ file:///home/conda/feedstock_root/build_artifacts/sqlparse_1631317292236/work
+tabulate @ file:///home/conda/feedstock_root/build_artifacts/tabulate_1614001031686/work
+tblib @ file:///home/conda/feedstock_root/build_artifacts/tblib_1616261298899/work
+text-unidecode==1.3
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1633102299089/work
+thrift @ file:///home/conda/feedstock_root/build_artifacts/thrift_1614958301229/work
+thriftpy2 @ file:///home/conda/feedstock_root/build_artifacts/thriftpy2_1636092435524/work
+toml @ file:///home/conda/feedstock_root/build_artifacts/toml_1604308577558/work
+toolz @ file:///home/conda/feedstock_root/build_artifacts/toolz_1636177962100/work
+tornado @ file:///home/conda/feedstock_root/build_artifacts/tornado_1635819587273/work
+unicodedata2 @ file:///home/conda/feedstock_root/build_artifacts/unicodedata2_1637177672503/work
+Unidecode @ file:///home/conda/feedstock_root/build_artifacts/unidecode_1631795222793/work
+urllib3 @ file:///home/conda/feedstock_root/build_artifacts/urllib3_1632350318291/work
+websocket-client @ file:///home/conda/feedstock_root/build_artifacts/websocket-client_1638883305856/work
+zict==2.0.0
+zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1633302054558/work

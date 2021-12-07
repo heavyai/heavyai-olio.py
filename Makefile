@@ -66,4 +66,8 @@ test:
 	pytest
 .PHONY: test
 
+build_docker:
+	$(MAKE) -C docker
+.PHONY: build_docker
+
 all: build
