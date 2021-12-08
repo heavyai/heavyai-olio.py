@@ -3,6 +3,7 @@ A simple object structure to generate OmniSciDB DDL definitions.
 """
 
 import re
+import copy
 
 
 class ModelObject:
@@ -14,6 +15,23 @@ class ModelObject:
     ):
         self.name = name
         self.tags = tags
+
+
+class ModelOperation:
+
+    def __init__(self, model, sql, category) -> None:
+        self.model = model
+        self.sql = sql
+        self.category = category
+    
+    def compile(self):
+        return self.sql
+    
+    def model_table(self):
+        if self.model.hasattr('table'):
+            return self.model.table
+        else:
+            return self.model
 
 
 class Datatype:
@@ -182,6 +200,8 @@ class Column (ModelObject):
         comment=None,
         source_col=None,
         tags=None,
+        rename_from=None,
+        is_drop=False,
     ):
         super().__init__(name=name, tags=tags)
         self.datatype = datatype
@@ -203,9 +223,14 @@ class Column (ModelObject):
             self.shared_dict = None
         self.shard_key = shard_key
         self.table = None
+        self.rename_from = rename_from
+        self.is_drop = is_drop
 
     def compile(self):
         return f"{self.name} {self.datatype}"
+
+    def define(self):
+        return ModelOperation(self, self.compile(), "DEFINE")
 
     def compile_shared_dict(self):
         if self.shared_dict:
@@ -213,14 +238,32 @@ class Column (ModelObject):
         else:
             return None
 
+    def shared_dict(self):
+        return ModelOperation(self, self.compile_shared_dict(), "DEFINE")
+
     def compile_shard_key(self):
         if self.shared_dict:
             return f"SHARD KEY ({self.name})"
         else:
             return None
     
+    def shared_dict(self):
+        return ModelOperation(self, self.compile_shard_key(), "DEFINE")
+
     def compile_add(self):
-        return f"""ALTER TABLE {self.table.name} ADD COLUMN {self.compile()}""",
+        return f"""ALTER TABLE {self.table.name} ADD COLUMN {self.compile()}"""
+
+    def add(self):
+        return ModelOperation(self, self.compile_add(), "DEFINE")
+    
+    def drop(self):
+        return ModelOperation(self, f"ALTER TABLE {self.table.name} DROP COLUMN {self.name}", "DROP")
+
+    def compile_rename(self):
+        return f"""ALTER TABLE {self.table.name} RENAME COLUMN {self.rename_from} TO {self.name}"""
+
+    def rename(self):
+        return ModelOperation(self, self.compile_rename(), "RENAME")
 
     def __str__(self):
         return self.compile()
@@ -249,6 +292,11 @@ class Table (ModelObject):
 
         for c in self.columns:
             c.table = self
+    
+    def copy_named(self, name):
+        c = copy.deepcopy(self)
+        c.name = name
+        return c
 
     def __getitem__(self, key):
         for c in self.columns:
@@ -289,6 +337,12 @@ class Table (ModelObject):
 {cols})
 {self._compile_with_props(self.props)};"""
         return ddl
+
+    def define(self) -> ModelOperation:
+        return ModelOperation(self, self.compile(), "DEFINE")
+
+    def show_def(self) -> ModelOperation:
+        return ModelOperation(self, f"SHOW CREATE TABLE {self.name}", "SHOW")
 
     def __str__(self):
         return self.compile()

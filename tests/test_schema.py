@@ -2,9 +2,9 @@ import omnisci_olio.schema as sc
 from omnisci_olio.workflow import connect
 
 
-def test_schema():
+def test_schema_datatypes():
     ddl = """\
-CREATE TABLE test_schema (
+CREATE TABLE test_schema_datatypes (
   text_ TEXT ENCODING DICT(32),
   text_none_ TEXT ENCODING NONE,
   text_8_ TEXT ENCODING DICT(8),
@@ -18,8 +18,8 @@ CREATE TABLE test_schema (
   point_4326_32_ GEOMETRY(POINT, 4326) ENCODING COMPRESSED(32))
 WITH (FRAGMENT_SIZE=1000000, MAX_ROWS=2000000, MAX_ROLLBACK_EPOCHS=13);"""
 
-    ts = sc.Table(
-        "test_schema",
+    tbl = sc.Table(
+        "test_schema_datatypes",
         [
             sc.Column("text_", sc.Text()),
             sc.Column("text_none_", sc.Text(encoding=None)),
@@ -35,9 +35,35 @@ WITH (FRAGMENT_SIZE=1000000, MAX_ROWS=2000000, MAX_ROLLBACK_EPOCHS=13);"""
         ],
         props=dict(fragment_size=1000000, max_rows=2000000, max_rollback_epochs=13),
     )
-    assert ddl == ts.compile()
+    assert ddl == tbl.define().compile()
 
     with connect() as con:
-        con.create_table(ts.name, ts, drop=True)
+        con.create_table(tbl, drop=True)
 
-        assert ddl == con.con.con.execute(f"show create table {ts.name}").fetchone()[0]
+        assert ddl == con.query1(tbl.show_def())
+
+def test_schema_evolution():
+    with connect() as con:
+        tbl_a = sc.Table(
+            "test_schema_evolution",
+            [
+                sc.Column("col_a", sc.Integer()),
+            ],
+            props=dict(fragment_size=100, max_rows=2000000),
+        )
+        tbl_b = sc.Table(
+            "test_schema_evolution",
+            [
+                sc.Column("col_b", sc.Integer(), rename_from="col_a"),
+                sc.Column("col_c", sc.Integer()),
+            ],
+            props=dict(fragment_size=100, max_rows=2000000),
+        )
+
+        con.create_table(tbl_a, drop=True)
+        t = con.table(tbl_a)
+        assert ["col_a"] == t.columns
+
+        con.create_table(tbl_b, drop=False)
+        t = con.table(tbl_b)
+        assert ["col_b", "col_c"] == t.columns

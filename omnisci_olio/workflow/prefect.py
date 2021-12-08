@@ -81,7 +81,7 @@ class OmnisciStorageLoopTask(OmnisciStorageTask):
         """
 
         query = self.gen_sql(con, loop_key=loop_key, **sources, **kwargs)
-        return con.store(query, load_table=target)
+        return con.store(query, load_table=target, update_key=loop_key)
 
     def run(self, con_url, sources, target, forward_target=None, **kwargs):
         """

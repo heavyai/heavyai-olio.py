@@ -141,7 +141,7 @@ db_update_log_table = sc.Table(
         sc.Column("src_app", sc.text16),
         sc.Column("src_paths", sc.Text(array=True)),
         sc.Column("src_tables", sc.Text(array=True)),
-        sc.Column("process_ap", sc.Text(16)),
+        sc.Column("process_app", sc.Text(16), rename_from="process_ap"),
         sc.Column("operation", sc.Text(16)),
         sc.Column("command", sc.Text()),
         sc.Column("tgt_table", sc.Text(16)),
@@ -156,6 +156,8 @@ db_update_log_table = sc.Table(
         sc.Column("message", sc.Text()),
         sc.Column("task", sc.Text(16)),
         sc.Column("task_map_index", sc.Integer()),
+        sc.Column("severity", sc.Text(8)),
+        sc.Column("process_run", sc.Text()),
     ],
     props=dict(fragment_size=1000000, max_rollback_epochs=3, max_rows=2000000),
 )
@@ -202,9 +204,12 @@ class OmniSciDBClient:
             self._log_con = _other._log_con
         else:
             log_uri = log_uri or os.environ.get("OMNISCI_DB_LOG_URL", None)
-            if log_uri:
+            if isinstance(log_uri, str):
                 self._log_con = ibis_connect(log_uri)
+            else:
+                self._log_con = log_uri
 
+            if self._log_con is not None:
                 uri = make_url(self.con.uri)
                 ss = self._server_status()
                 si = self._session_info()
@@ -224,6 +229,8 @@ class OmniSciDBClient:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.close_on_exit:
             self.con.__exit__(exc_type, exc_val, exc_tb)
+            if (self._log_con is not None) and (self.con != self._log_con):
+                self._log_con.__exit__(exc_type, exc_val, exc_tb)
 
     ########################
     # Utility functions
@@ -289,6 +296,9 @@ class OmniSciDBClient:
             # this reestablishes the table to be connected to self rather than some other (stale) connection
             self.sources.append(t.name)
             return self.con.table(t.name)
+        elif isinstance(t, sc.Table):
+            self.sources.append(t.name)
+            return self.con.table(t.name)
         else:
             self.sources.append(t)
             return self.con.table(t)
@@ -311,8 +321,13 @@ class OmniSciDBClient:
     def to_sql(self, expr):
         if isinstance(expr, str):
             return expr
+        elif isinstance(expr, sc.ModelOperation):
+            return expr.compile()
         else:
             return self.con.compile(expr)
+
+    def compile(self, expr):
+        return self.to_sql(expr)
 
     def _name(self, thing):
         if isinstance(thing, ibis_omniscidb.client.OmniSciDBTable):
@@ -339,13 +354,10 @@ class OmniSciDBClient:
     ########################
 
     def _log_init(self):
-        if (
-            not self._log_inited
-            and self._log_con
-            and db_update_log_table.name not in self._log_con.list_tables()
-        ):
+        if (not self._log_inited and self._log_con):
             self._log_inited = True
-            self._log_con.con.execute(db_update_log_table.compile())
+            with OmniSciDBClient(con=self._log_con, log_uri=self._log_con, close_on_exit=False) as log_con:
+                log_con.create_table(db_update_log_table)
 
     def _server_status(self):
         return self.con.con._client.get_server_status(self.con.con._session)
@@ -368,6 +380,7 @@ class OmniSciDBClient:
         update_key,
         message,
         src_tables=None,
+        severity=None,
     ):
         if self._log_con is None:
             return
@@ -383,7 +396,7 @@ class OmniSciDBClient:
             None,  # src_app
             src_paths or [],
             src_tables or [],
-            getattr(prefect.context, "flow_name", sys.argv[0]),
+            getattr(prefect.context, "flow_name", sys.argv[0]), # process_app
             operation,
             command,
             tgt_table,
@@ -394,10 +407,12 @@ class OmniSciDBClient:
             rows_before,
             rows_after,
             data_timestamp,
-            update_key,
+            None if update_key is None else str(update_key),
             message,
             getattr(prefect.context, "task_name", None),
             getattr(prefect.context, "map_index", None),
+            severity,
+            getattr(prefect.context, "process_run_id", None), # process_run
         )
         self._log_init()
         # TODO load_table method=rows is inserting string 'None' instead of None/NULL
@@ -416,14 +431,23 @@ class OmniSciDBClient:
         tend=None,
         error_count=None,
         message=None,
+        update_key=None,
+        severity=None,
         **kwargs,
     ):
         tend = tend or time()
         sources = list(set(self._names((sources or []) + self.sources)))
+        if severity is None:
+            if error_count and error_count > 0:
+                severity = "ERROR"
+            else:
+                severity = "INFO"
         msg = str(dict(
             cmd=cmd,
             time_s=round(tend - tstart, 2),
+            severity=severity,
             target=target,
+            update_key=update_key,
             ct_before=ct_before,
             ct_after=ct_after,
             sources=sources,
@@ -432,7 +456,7 @@ class OmniSciDBClient:
             error_count=error_count,
             **kwargs,
         ))
-        if error_count and error_count > 0:
+        if severity == "ERROR":
             logger().error(msg)
         else:
             logger().info(msg)
@@ -447,9 +471,10 @@ class OmniSciDBClient:
             rows_before=ct_before,
             rows_after=ct_after,
             data_timestamp=None,
-            update_key=None,
+            update_key=update_key,
             message=message,
             src_tables=sources,
+            severity=severity,
         )
 
     ########################
@@ -484,7 +509,14 @@ class OmniSciDBClient:
             logi(cmd="query", time_s=round(time_s, 2), sql=sql)
         return df
 
-    def exec_update(self, table_name, sql, sources=None, cmd="execute_update"):
+    def query1(self, expr):
+        return self.con.con.execute(self.compile(expr)).fetchone()[0]
+
+    def execute(self, op, sources=None):
+        # if isinstance(op, sc.ModelOperation):
+        return self.exec_update(op.model.name, op.compile(), sources=sources, cmd=op.category)
+
+    def exec_update(self, table_name, sql, sources=None, cmd="execute_update", update_key=None):
         sql = sql.strip().replace("\n", " ")
         if self.dryrun:
             sqlpp(sql)
@@ -539,16 +571,18 @@ class OmniSciDBClient:
                 after,
                 sql=sql,
                 response=response,
+                update_key=update_key,
             )
         return table_name
 
-    def insert_as(self, table, sql, sources=None):
+    def insert_as(self, table, sql, sources=None, update_key=None):
         tn = self._name(table)
         return self.exec_update(
             tn,
             f"""INSERT INTO "{tn}" {self.to_sql(sql)};""",
             sources=sources,
             cmd="INSERT",
+            update_key=update_key,
         )
 
     def _with_props(self, kwargs):
@@ -574,19 +608,47 @@ class OmniSciDBClient:
         """
         plan_type: "" (default), "PLAN", or "CALCITE"
         """
-        return self.con.con.execute(f"EXPLAIN {plan_type} " + self.to_sql(query)).fetchone()[0]
+        return self.query1(f"EXPLAIN {plan_type} " + self.to_sql(query))
 
     def show_create_table(self, tn):
-        self.con.execute(f"SHOW CREATE TABLE {tn}").fetchone()[0]
+        self.query1(f"SHOW CREATE TABLE {tn}")
 
-    def create_table(self, table, ddl, drop=False):
-        tn = self._name(table)
-        if drop:
-            self.drop_table(tn)
-        ddl = ddl.compile(table) if isinstance(ddl, sc.Table) else ddl
-        return self.exec_update(table, ddl)
+    def create_table(self, table, ddl=None, drop=False):
+        if isinstance(table, sc.Table):
+            tbl = table
+        elif isinstance(ddl, sc.Table):
+            # support old way using this method where ddl is a Table and table is the name
+            tbl = ddl.copy_named(table)
+            ddl = None
+        else:
+            tbl = None
 
-    def create_table_as(self, table, sql, sources=None, drop=False, **kwargs):
+        if tbl is None:
+            tn = self._name(table)
+            if drop:
+                self.drop_table(tn)
+            return self.exec_update(table, ddl, cmd="CREATE TABLE")
+        else:
+            if drop:
+                self.drop_table(tbl.name)
+            if not self.exists_table(tbl.name):
+                return self.execute(tbl.define())
+            else:
+                for col in tbl.columns:
+                    t = self.table(tbl)
+                    if col.name in t.columns:
+                        if col.is_drop:
+                            self.execute(col.drop())
+                        # TODO validate column datatype
+                    elif not col.is_drop:
+                        if (col.rename_from is not None) and (col.rename_from in t.columns):
+                            self.execute(col.rename())
+                        else:
+                            self.execute(col.add())
+                return tbl.name
+
+
+    def create_table_as(self, table, sql, sources=None, drop=False, update_key=None, **kwargs):
         tn = self._name(table)
         if drop:
             self.drop_table(tn)
@@ -594,7 +656,7 @@ class OmniSciDBClient:
         ctas = f"""CREATE TABLE {tn} AS (
 {self.to_sql(sql)}
 ) {props};"""
-        return self.exec_update(tn, ctas, sources=sources, cmd="CREATE TABLE AS")
+        return self.exec_update(tn, ctas, sources=sources, cmd="CREATE TABLE AS", update_key=update_key)
 
     def create_view_as(self, target_name, sql, sources=None, drop=False, **kwargs):
         tn = self._name(target_name)
@@ -646,12 +708,7 @@ class OmniSciDBClient:
                 )
 
     def alter_table_add_column(self, col):
-        self.exec_update(
-            col.table,
-            col.compile_add(),
-            cmd="ADD COLUMN",
-            sources=[table],
-        )
+        return self.execute(col.add())
 
     def delete_where(self, table_name, where_sql):
         return self.exec_update(
@@ -708,9 +765,7 @@ class OmniSciDBClient:
         res = self.copy_from(tgt_table, tmp_file, header=False, max_reject=0)
 
         os.remove(tmp_file)
-        self.log(
-            "store_by_copy", tstart, tgt_table, sources=sources, rows_input=len(df)
-        )
+        self.log("store_by_copy", tstart, tgt_table, sources=sources, rows_input=len(df), update_key=key)
         return res
 
     def copy_to(self, table_name, from_expr, to_filename, **kwargs):
@@ -719,7 +774,7 @@ class OmniSciDBClient:
         return self.exec_update(None, q, sources=[table_name], cmd="COPY TO")
 
     def copy_to_and_from(
-        self, src_table, from_expr, tgt_table, ddl=None, drop=False, **kwargs
+        self, src_table, from_expr, tgt_table, ddl=None, drop=False, update_key=None, **kwargs
     ):
         """
         params: used to label the file name
@@ -750,7 +805,7 @@ class OmniSciDBClient:
         res = self.copy_from(tgt_table, tmp_file, header=False, max_reject=0, **kwargs)
 
         os.remove(tmp_file)
-        self.log("copy_to_and_from", tstart, tgt_table)
+        self.log("copy_to_and_from", tstart, tgt_table, update_key=update_key)
         return res
 
     def _store_expr(
@@ -761,11 +816,8 @@ class OmniSciDBClient:
         take_counts=True,
         ddl=None,
         fragment_size=None,
+        update_key=None,
     ):
-        tstart = time()
-
-        before = 0
-
         if not self.exists_table(table_name) and ddl:
             self.create_table(table_name, ddl)
 
@@ -778,29 +830,21 @@ class OmniSciDBClient:
                     t = self.table(table_name)
                     before = self.con.execute(t.count())
 
-                self.insert_as(table_name, expr)
+                self.insert_as(table_name, expr, update_key=update_key)
 
         else:
-            self.create_table_as(table_name, expr, fragment_size=fragment_size)
-
-        tend = time()
-
-        after = None
-        if take_counts:
-            t = self.table(table_name)
-            after = self.con.execute(t.count())
-
-        self.log("store_expr", tstart, table_name, None, before, after)
+            self.create_table_as(table_name, expr, fragment_size=fragment_size, update_key=update_key)
 
         return table_name
 
-    def _load_table_from_df(self, table_name, ddl, df, take_counts=True):
+    def _load_table_from_df(self, table_name, ddl, df, take_counts=True, update_key=None):
         sources = list(set(self._names(self.sources)))
         logi(
             cmd="load_table_from_df",
             sources=sources,
             target=table_name,
             process_rows=len(df),
+            update_key=update_key,
         )
 
         if len(df) == 0:
@@ -842,6 +886,7 @@ class OmniSciDBClient:
             cmd="load_table_from_df",
             time_s=round(tend - tstart, 2),
             target=table_name,
+            update_key=update_key,
             ct_input=len(df.index),
             ct_before=before,
             ct_after=after,
@@ -861,6 +906,7 @@ class OmniSciDBClient:
                 after,
                 process_rows=len(df.index),
                 rejected=rejected,
+                update_key=update_key,
             )
 
         return table_name
@@ -876,6 +922,7 @@ class OmniSciDBClient:
         skip_if_exists=False,
         take_counts=True,
         fragment_size=None,
+        update_key=None,
     ):
         if sources:
             logi(
@@ -887,7 +934,7 @@ class OmniSciDBClient:
             self.drop_table(table_name)
         if isinstance(expr, pd.DataFrame):
             return self._load_table_from_df(
-                table_name, ddl=ddl, df=expr, take_counts=take_counts
+                table_name, ddl=ddl, df=expr, take_counts=take_counts, update_key=update_key,
             )
         else:
             return self._store_expr(
@@ -897,6 +944,7 @@ class OmniSciDBClient:
                 ddl=ddl,
                 take_counts=take_counts,
                 fragment_size=fragment_size,
+                update_key=update_key,
             )
 
     def store(
@@ -910,6 +958,7 @@ class OmniSciDBClient:
         take_counts=True,
         fragment_size=None,
         sources=None,
+        update_key=None,
     ):
         """
         Loads `data` into a table if load_table is not None.
@@ -929,6 +978,7 @@ class OmniSciDBClient:
                 skip_if_exists=skip_if_exists,
                 take_counts=take_counts,
                 fragment_size=fragment_size,
+                update_key=update_key,
             )
         else:
             return data

@@ -8,7 +8,6 @@ import pyomnisci
 from .client import OmniSciDBClient, log_info, log_warning
 
 OMNISCI_DB_URL = os.environ['OMNISCI_DB_URL']
-OMNISCI_DB_TEST_URL = os.environ['OMNISCI_DB_TEST_URL']
 
 def round_sig(x):
     return float("%.3g" % x)
