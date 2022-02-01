@@ -502,12 +502,15 @@ class OmniSciDBClient:
     def query(self, sql):
         sql = self.to_sql(sql)
         tstart = time()
-        df = pd.read_sql(sql, self.con.con)
-        time_s = time() - tstart
-        if time_s > 2.0:
-            # 2 seconds is sometimes a long time, but not sure this should be a warning
-            logi(cmd="query", time_s=round(time_s, 2), sql=sql)
-        return df
+        try:
+            df = pd.read_sql(sql, self.con.con)
+            time_s = time() - tstart
+            if time_s > 2.0:
+                # 2 seconds is sometimes a long time, but not sure this should be a warning
+                logi(cmd="query", time_s=round(time_s, 2), sql=sql)
+            return df
+        except Exception as e:
+            raise Exception(sql) from e
 
     def query1(self, expr):
         return self.con.con.execute(self.compile(expr)).fetchone()[0]
