@@ -4,6 +4,11 @@ A simple object structure to generate OmniSciDB DDL definitions.
 
 import re
 import copy
+import numpy as np
+import pandas as pd
+
+# warning: this is not a public API
+import pyomnisci._pandas_loaders as omnisci_loaders
 
 
 class ModelObject:
@@ -34,6 +39,8 @@ class ModelOperation:
             return self.model
 
 
+datatypes = []
+
 class Datatype:
     def __init__(
         self,
@@ -45,6 +52,7 @@ class Datatype:
         encoding=None,
         array=False,
         array_length=None,
+        alt_name=None,
     ):
         self.typename = typename
         self.size = size
@@ -54,6 +62,9 @@ class Datatype:
         self.encoding = encoding
         self.array = array
         self.array_length = array_length
+        self.alt_name = alt_name
+
+        datatypes.append(self)
 
     # def __str__(self):
     #     # TODO this is not correct for all datatypes, must be defined in subclass
@@ -61,10 +72,24 @@ class Datatype:
     #     arr = ("[{self.array_length}]" if self.array else "")
     #     return f"{self.typename} {enc} {arr}"
 
+    def __str__(self):
+        if self.array:
+            return f"{self.typename}[{self.array_length or ''}]"
+        else:
+            return self.typename
+
+    def copy_with(self,
+        array=False,
+    ):
+        c = copy.deepcopy(self)
+        if array is not None:
+            c.array = array
+        return c
+
 
 class Text(Datatype):
-    def __init__(self, size=32, encoding="DICT", array=False):
-        super().__init__("TEXT", size=size, encoding=encoding, array=array)
+    def __init__(self, size=32, encoding="DICT", array=False, alt_name=None):
+        super().__init__("TEXT", size=size, encoding=encoding, array=array, alt_name=alt_name)
 
     def __str__(self):
         if self.array:
@@ -82,8 +107,16 @@ class Text(Datatype):
 text_enc_none = Text(encoding=None)
 text8 = Text(8)
 text16 = Text(16)
-text32 = Text(32)
+text32 = Text(32, alt_name="STR")
 
+
+class Boolean(Datatype):
+
+    def __init__(self, array=False):
+        super().__init__("BOOLEAN", array=array, alt_name="BOOL")
+
+# boolean
+boolean = Boolean()
 
 # float
 class Float(Datatype):
@@ -98,13 +131,6 @@ class Float(Datatype):
             typename=typename, size=size, array=array, array_length=array_length
         )
 
-    def __str__(self):
-        if self.array:
-            return f"{self.typename}[{self.array_length or ''}]"
-        else:
-            return self.typename
-
-
 float32 = Float()
 float64 = Float(64)
 
@@ -117,25 +143,19 @@ _int_sizes = {
 
 # int
 class Integer(Datatype):
-    def __init__(self, size=32, array=False, array_length=None):
+    def __init__(self, size=32, array=False, array_length=None, alt_name=None):
         super().__init__(
             _int_sizes[size],
             encoding="FIXED",
             size=size,
             array=array,
             array_length=array_length,
+            alt_name=alt_name
         )
-
-    def __str__(self):
-        if self.array:
-            return f"{self.typename}[{array_length or ''}]"
-        else:
-            return self.typename
-
 
 int8 = Integer(8)
 int16 = Integer(16)
-int32 = Integer()
+int32 = Integer(alt_name="INT")
 int64 = Integer(64)
 
 # time
@@ -170,6 +190,7 @@ class Geometry(Datatype):
             size=None,
             array=array,
             array_length=array_length,
+            alt_name=shape,
         )
         self.compressed = compressed
         self.shape = shape
@@ -188,7 +209,6 @@ linestring4326ec32 = Geometry("LINESTRING", 4326, 32)
 multipolygon4326ec32 = Geometry("MULTIPOLYGON", 4326, 32)
 
 # TODO more types
-
 
 class Column (ModelObject):
     def __init__(
@@ -225,6 +245,36 @@ class Column (ModelObject):
         self.table = None
         self.rename_from = rename_from
         self.is_drop = is_drop
+
+    def to_omnisci_dtype(series):
+        try:
+            return omnisci_loaders.get_mapd_dtype(series)
+        except TypeError as e:
+            if pd.api.types.is_object_dtype(series):
+                try:
+                    val = series.dropna().iloc[0]
+                except IndexError:
+                    raise IndexError("Not any valid values to infer the type")
+
+                # TODO add this check for np.ndarray to pyomnisci._pandas_loaders get_mapd_type_from_object
+                if isinstance(val, np.ndarray):
+                    return 'ARRAY/{}'.format(omnisci_loaders.get_mapd_dtype(pd.Series(list(val))))
+                if isinstance(val, set):
+                    return 'ARRAY/{}'.format(omnisci_loaders.get_mapd_dtype(pd.Series(list(val))))
+            raise Exception(str(dict(val=val, type=type(val)))) from e
+
+    def from_dataframe(name, series):
+        try:
+            odt = Column.to_omnisci_dtype(series)
+            is_array = odt.startswith('ARRAY')
+            odt = odt.replace('ARRAY/', '')
+
+            for d in datatypes:
+                if odt == d.typename or odt == d.alt_name:
+                    return Column(name, d.copy_with(array=is_array))
+        except Exception as e:
+            raise Exception(name) from e
+        raise Exception(f"unknown datatype {odt} for {name}")
 
     def compile(self):
         return f"{self.name} {self.datatype}"
@@ -293,16 +343,25 @@ class Table (ModelObject):
         for c in self.columns:
             c.table = self
     
+    def from_dataframe(name, df):
+        return Table(name, [Column.from_dataframe(col, df[col]) for col in df.columns])
+
     def copy_named(self, name):
         c = copy.deepcopy(self)
         c.name = name
         return c
 
-    def __getitem__(self, key):
+    def __getitem__(self, col_name):
         for c in self.columns:
-            if c.name == key:
+            if c.name == col_name:
                 return c
-        raise KeyError(key)
+        raise KeyError(f"No column named '{col_name}'")
+
+    def __get__(self, col_name):
+        for c in self.columns:
+            if c.name == col_name:
+                return c
+        raise AttributeError(f"No column named '{col_name}'")
 
     def _compile_with_props(self, kwargs):
         if not kwargs:
