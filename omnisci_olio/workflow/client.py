@@ -129,6 +129,33 @@ def _schema_apply_to(schema, df):
     return df
 
 
+def clean_name(name, pretty=False):
+    from sqlalchemy_omnisci.base import RESERVED_WORDS
+
+    name = name.strip(" ")
+    name = name.replace("%", "pct")
+    name = name.replace("<=", "le")
+    name = name.replace("<", "lt")
+    name = name.replace(">=", "ge")
+    name = name.replace(">", "gt")
+    name = name.replace("+", "plus")
+    # name = name.replace("-", "minus")
+    a = "".join([c if c.isalnum() else "_" for c in name.strip()])
+    b = (a + "_") if (a.upper() in RESERVED_WORDS) else a
+    if b[0].isdigit():
+        b = "_" + b
+    if pretty:
+        x = b.replace("__", "_")
+        x = x.replace("__", "_")
+        x = x.rstrip("_")
+        return x.lower()
+    else:
+        return b
+
+def clean_names(columns, pretty=False):
+    return [clean_name(c, pretty=pretty) for c in columns]
+
+
 db_update_log_table = sc.Table(
     "omnisci_db_update_log",
     [
@@ -237,30 +264,10 @@ class OmniSciDBClient:
     ########################
 
     def clean_name(self, name, pretty=False):
-        from sqlalchemy_omnisci.base import RESERVED_WORDS
-
-        name = name.strip(" ")
-        name = name.replace("%", "pct")
-        name = name.replace("<=", "le")
-        name = name.replace("<", "lt")
-        name = name.replace(">=", "ge")
-        name = name.replace(">", "gt")
-        name = name.replace("+", "plus")
-        # name = name.replace("-", "minus")
-        a = "".join([c if c.isalnum() else "_" for c in name.strip()])
-        b = (a + "_") if (a.upper() in RESERVED_WORDS) else a
-        if b[0].isdigit():
-            b = "_" + b
-        if pretty:
-            x = b.replace("__", "_")
-            x = x.replace("__", "_")
-            x = x.rstrip("_")
-            return x.lower()
-        else:
-            return b
+        return clean_name(name, pretty=pretty)
 
     def clean_names(self, columns, pretty=False):
-        return [self.clean_name(c, pretty=pretty) for c in columns]
+        return clean_names(columns, pretty=pretty)
 
     def pp(self, x):
         try:
