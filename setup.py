@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="omnisci-olio",
-    version="0.2.0.dev4",
+    version="0.2.0.dev5",
     description="OmniSci DB: Python functions using pyomnici, Ibis and integration with various tools and datasets",
     author="Mike Hinchey",
     author_email="mike.hinchey@omnisci.com",

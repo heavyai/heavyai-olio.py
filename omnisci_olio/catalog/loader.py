@@ -19,7 +19,7 @@ def omnisci_geo(con, table_name, src_file, drop=False, src_dir=geo_dir):
             con.drop_table(table_name)
         else:
             return t
-    q = f"""COPY {table_name} FROM '{src_dir}/{src_file}' WITH ( geo='true', max_reject=0 )"""
+    q = f"""COPY {table_name} FROM '{src_dir}/{src_file}' WITH ( source_type='geo_file', max_reject=0 )"""
     logger().info(q)
     logger().info(copy_from(con.con, q))
     return con.table(table_name)

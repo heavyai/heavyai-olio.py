@@ -3,7 +3,7 @@ SHELL = /bin/sh
 
 DB_CONTAINER = omnisci_test
 PYTHON = 3.8
-OMNISCI_VERSION = v5.9.0
+OMNISCI_VERSION = v5.10.1
 # OMNISCI_VERSION = latest
 
 -include .env
