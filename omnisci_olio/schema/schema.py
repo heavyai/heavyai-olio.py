@@ -181,6 +181,27 @@ class Timestamp(Datatype):
 timestamp0ef32 = Timestamp(0, 32)
 # timestamp9 = timestamp(9)
 
+# date
+class Date(Datatype):
+    def __init__(self, encoding="DAYS", size=32, array=False, array_length=None):
+        super().__init__(
+            "DATE",
+            encoding=encoding,
+            size=size,
+            array=array,
+            array_length=array_length,
+        )
+
+    def __str__(self):
+        arr = "[{self.array_length}]" if self.array else ""
+        if self.size == 32:
+            return f"{self.typename} ENCODING {self.encoding}({self.size}){arr}"
+        else:
+            return f"{self.typename}({self.precision}){arr}"
+
+
+days32 = Date("DAYS", 32)
+
 # geo
 class Geometry(Datatype):
     def __init__(self, shape, srid, compressed=None, array=False, array_length=None):
@@ -333,7 +354,7 @@ class Table (ModelObject):
 
         if columns is None:
             columns = []
-        for k, v in kwargs:
+        for k, v in kwargs.items():
             if isinstance(v, tuple):
                 columns.append(Column(k, *v))
             else:
@@ -430,24 +451,26 @@ def parse_ddl_to_python(ddl_text, namespace="sc"):
     ddl_text = ddl_text.strip()
     if ddl_text.endswith(";"):
         ddl_text = ddl_text[:-1]
+    result = []
     for line in ddl_text.split("\n"):
         try:
             if line.startswith("CREATE TABLE "):
-                m = re.match("CREATE TABLE (.*) \(", line)
+                m = re.match("CREATE TABLE (.*) \\(", line)
                 table_name = m[1]
-                print(f"""{namespace}.Table("{table_name}", [""")
+                result.append(f"""{namespace}.Table("{table_name}", [""")
             elif line.startswith("SHARED DICTIONARY "):
-                m = re.match("SHARED DICTIONARY \((.*)\) REFERENCES (.*)\((.*)\)", line)
+                m = re.match("SHARED DICTIONARY \\((.*)\\) REFERENCES (.*)\\((.*)\\)", line)
                 # TODO SHARED DICTIONARY
-                print(f"""TODO SHARED DICTIONARY {m[1]} {m[2]} {m[3]}""")
+                result.append(f"""TODO SHARED DICTIONARY {m[1]} {m[2]} {m[3]}""")
             elif line.startswith("SHARD KEY "):
-                m = re.match("SHARD KEY \((.*)\)", line)
+                m = re.match("SHARD KEY \\((.*)\\)", line)
                 # TODO SHARD KEY
-                print(f"""TODO SHARD KEY {m[1]}""")
+                result.append(f"""TODO SHARD KEY {m[1]}""")
             else:
-                m = re.match(" *([a-zA-Z0-9_]*) (.*)[,\)]$", line)
+                m = re.match(" *([a-zA-Z0-9_]*) (.*)[,\\)]$", line)
                 dt = parse_datatypes.get(m[2], m[2])
-                print(f"""    {namespace}.Column("{m[1]}", {namespace}.{dt}),""")
+                result.append(f"""    {namespace}.Column("{m[1]}", {namespace}.{dt}),""")
         except Exception as e:
             raise Exception(f'line = "{line}"') from e
-    print("])")
+    result.append("])")
+    return "\n".join(result)
