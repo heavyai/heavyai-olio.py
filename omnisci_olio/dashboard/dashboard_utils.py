@@ -10,6 +10,7 @@ from omnisci.thrift.ttypes import TDashboard
 from ibis_omniscidb import Backend
 from .dashboard_export import *
 from .dashboard_data import dashboard_charts, dashboard_chart_projections
+from .dashboard_edit import _objwalk, _source_remapper
 
 # module level logger which extends root logger
 L = logging.getLogger(__name__)
@@ -311,3 +312,106 @@ class DashboardUtils:
         )
         L.info(f'dashboards tabs df: \n{df.to_string()}')
         return df
+
+    @staticmethod
+    def change_dashboard_sources(dashboard: TDashboard, remap: Dict[Any, Any]) -> TDashboard:
+        """
+        Remap a dashboard to use a new table
+        Parameters
+        ----------
+        dashboard: A dictionary containing the old dashboard state
+        remap: A dictionary containing the new dashboard state to be mapped
+        Returns
+        -------
+        dashboard: A base64 encoded json object containing the new dashboard state
+        """
+        dm = json.loads(dashboard.dashboard_metadata)
+        tlst = map(str.strip, dm.get("table", "").split(","))
+        tlst = [remap[t]["name"] if remap.get(t, {}).get("name", {}) else t for t in tlst]
+        dm["table"] = ", ".join(tlst)
+
+        # Load our dashboard state into a python dictionary
+        ds = json.loads(b64decode(dashboard.dashboard_state).decode("utf-8"))
+
+        # with open('src.json', 'w') as f:
+        #     json.dump(ds, f, indent=4, sort_keys=True)
+
+        ds = _objwalk(None, ds, _source_remapper(remap))
+
+        # with open('_objwalk.json', 'w') as f:
+        #     json.dump(ds, f, indent=4, sort_keys=True)
+
+        # Convert our new dashboard state to a python object
+        dashboard.dashboard_state = b64encode(json.dumps(ds).encode()).decode()
+        dashboard.dashboard_metadata = json.dumps(dm)
+        return dashboard
+
+    def duplicate_dashboard(self, dashboard_id, new_name=None, source_remap=None) -> int:
+        """
+        Duplicate an existing dashboard, returning the new dashboard id.
+
+        Parameters
+        ----------
+
+        dashboard_id: int
+            The id of the dashboard to duplicate
+        new_name: str
+            The name for the new dashboard
+        source_remap: dict
+            EXPERIMENTAL
+            A dictionary remapping table names. The old table name(s)
+            should be keys of the dict, with each value being another
+            dict with a 'name' key holding the new table value. This
+            structure can be used later to support changing column
+            names.
+
+        Examples
+        --------
+        >>> source_remap = {'oldtablename1': {'name': 'newtablename1'}}
+        >>> dash_utils = DashboardUtils(backend=backend)
+        >>> newdash_id = dash_utils.duplicate_dashboard(12345, "new dash", source_remap)
+        """
+
+        source_remap = source_remap or {}
+        dashboard = self.backend.con.get_dashboard(dashboard_id=dashboard_id)
+
+        newdashname = new_name or "{0} (Copy {1})".format(
+            dashboard.dashboard_name, datetime.now().isoformat()
+        )
+        d = self.change_dashboard_sources(dashboard, source_remap) if source_remap else dashboard
+        d.dashboard_name = newdashname
+
+        return self.create_dashboard(d)
+
+    @staticmethod
+    def dashboards_remap_tables(src_con: Backend, tgt_con: Backend, source_remap=None, replace=False) -> List[int]:
+        results = []
+        for id in src_con.con.get_dashboards():
+            src = src_con.con._client.get_dashboard(
+                session=src_con.con._session, dashboard_id=id.dashboard_id
+            )
+            src_dashboard_state = src.dashboard_state
+            src_dashboard_metadata = src.dashboard_metadata
+
+            tgt = DashboardUtils.change_dashboard_sources(src, source_remap) if source_remap else src
+            tgt.dashboard_name = src.dashboard_name
+
+            if (src_dashboard_state != tgt.dashboard_state) or (
+                src_dashboard_metadata != tgt.dashboard_metadata
+            ):
+                if replace:
+                    tgt_con.con._client.replace_dashboard(
+                        session=tgt_con.con._session,
+                        dashboard_id=src.dashboard_id,
+                        dashboard_name=tgt.dashboard_name,
+                        dashboard_owner=tgt.dashboard_owner,
+                        dashboard_state=tgt.dashboard_state,
+                        image_hash=None,
+                        dashboard_metadata=tgt.dashboard_metadata,
+                    )
+                    results.append(src.dashboard_id)
+                else:
+                    id = tgt_con.con.create_dashboard(tgt)
+                    results.append(id)
+
+        return results
