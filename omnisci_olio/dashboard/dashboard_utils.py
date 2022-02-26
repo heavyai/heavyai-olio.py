@@ -95,7 +95,6 @@ class DashboardUtils:
                     td['state'] = json.loads(all)
                     return td
         except Exception as e:
-            L.error(f'Exception occurs: {e}')
             raise Exception(filename) from e
 
     @staticmethod
@@ -165,5 +164,4 @@ class DashboardUtils:
             return self.replace_dashboard(td)
 
         except Exception as e:
-            L.error(f'Exception occurs: {e}')
             raise Exception(filename) from e
