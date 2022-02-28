@@ -9,14 +9,8 @@ from omnisci.thrift.ttypes import TDashboard
 from ibis_omniscidb import Backend
 from .dashboard_export import *
 
+# module level logger which extends root logger
 L = logging.getLogger(__name__)
-L.setLevel(logging.INFO)
-handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s',
-                              '%Y-%m-%d %H:%M:%S')
-handler.setFormatter(formatter)
-L.addHandler(handler)
-
 
 @dataclass
 class DashboardUtils:
@@ -30,6 +24,7 @@ class DashboardUtils:
         """
         Get all omnisci dashboards created through immerse.
         """
+        L.info('Getting dashboards...')
         boards = dict()
         for board in self.backend.con.get_dashboards():
             boards[board.dashboard_name.strip()] = board
@@ -60,6 +55,7 @@ class DashboardUtils:
                 state=json.loads(b64decode(src.dashboard_state).decode("utf-8")),
             )
             json.dump(obj, out, sort_keys=True, indent=4)
+            L.info(f'Dashboard {src.dashboard_name} sucessfully exported to {filename}')
             return filename
 
     def export_dashboards(self, dashboards_dir="dashboards", delete_files=False) -> List[str]:
@@ -71,8 +67,8 @@ class DashboardUtils:
         os.makedirs(dashboards_dir, exist_ok=True)
         if delete_files:
             for filename in glob(f"{dashboards_dir}/*.json"):
-                print("deleting file ", filename)
                 os.remove(filename)
+                L.info(f'Dashboard file {filename} got deleted.')
 
         return [self.export_dashboard(board.dashboard_id, dashboards_dir=dashboards_dir)
                 for board in self.backend.con.get_dashboards()]
@@ -85,6 +81,7 @@ class DashboardUtils:
             filename ([str]): path to dashboard json file.
         """
         try:
+            L.info(f'Reading dashboard file {filename}')
             with open(filename) as fin:
                 first_line = fin.readline()
                 if first_line.startswith("{"):
