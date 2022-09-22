@@ -26,7 +26,8 @@ except:
 
 def logger():
     # return logging.getLogger('default')
-    return prefect.context.get("logger")
+    # return prefect.context.get("logger")
+    return prefect.get_run_logger()
 
 
 def log_info(**kwargs):
