@@ -30,6 +30,10 @@ def logger():
     return prefect.get_run_logger()
 
 
+def log_debug(**kwargs):
+    logger().debug(str(kwargs))
+
+
 def log_info(**kwargs):
     logger().info(str(kwargs))
 
@@ -42,6 +46,7 @@ def log_error(**kwargs):
     logger().error(str(kwargs))
 
 
+"""
 # TODO deprecate in favor of log_info
 def logi(**kwargs):
     logger().info(str(kwargs))
@@ -61,6 +66,7 @@ def log_infx(
 ):
     tend = tend or time()
     sources = list(set(sources)) if sources else None
+
     logi(
         cmd=cmd,
         time_s=round(tend - tstart, 2),
@@ -72,7 +78,7 @@ def log_infx(
         sql=sql,
         **kwargs,
     )
-
+"""
 
 def _file_md5sum(filename):
     h = hashlib.md5()
@@ -204,6 +210,7 @@ class OmniSciDBClient:
         _other=None,
         dryrun=False,
         log_uri=None,
+        default_severity:str=None,
     ):
         self.close_on_exit = close_on_exit
         self.sources = []
@@ -248,11 +255,23 @@ class OmniSciDBClient:
                     ss.version,
                     self.con.con._session[:12],
                 )
+        
+        self.default_severity = default_severity.upper() if default_severity else "DEBUG"
+        if self.default_severity == "INFO":
+            self.default_logger = log_info
+        elif self.default_severity == "WARNING":
+            self.default_logger = log_warning
+        elif self.default_severity == "ERROR":
+            self.default_logger = log_error
+        else:
+            self.default_logger = log_debug
+
 
     def __enter__(self):
         # By not closing on exit, this connection can be used in nested `with connect() as con` blocks.
         # return OmniSciDBClient(_other=self, close_on_exit=self.close_on_exit)
         return self
+
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.close_on_exit:
@@ -281,6 +300,20 @@ class OmniSciDBClient:
     def tmp_tablename(self, task, src_table, *args):
         args_str = "__" + "_".join(args) if args else ""
         return self.clean_name(f"tmp_{task}__{src_table}" + args_str)
+    
+    def get_logger_severity(self, severity:str=None):
+        severity = severity.upper() if severity else self.default_severity
+
+        if severity == "ERROR":
+            return log_error
+        elif severity == "WARNING":
+            return log_warning
+        elif severity == "INFO":
+            return log_info
+        elif severity == "DEBUG":
+            return log_debug
+        else:
+            return self.default_logger
 
     ########################
     # Ibis-related
@@ -294,7 +327,7 @@ class OmniSciDBClient:
         stat = pathlib.Path(filename).stat()
         modtime = datetime.datetime.fromtimestamp(stat.st_mtime)
         md5sum = _file_md5sum(filename).hexdigest()
-        logi(cmd="src_file", modtime=modtime, size=stat.st_size, md5sum=md5sum)
+        self.default_logger(cmd="src_file", modtime=modtime, size=stat.st_size, md5sum=md5sum)
 
         self.sources.append(filename)
         return filename
@@ -364,7 +397,7 @@ class OmniSciDBClient:
     def _log_init(self):
         if (not self._log_inited and self._log_con):
             self._log_inited = True
-            with OmniSciDBClient(con=self._log_con, log_uri=self._log_con, close_on_exit=False) as log_con:
+            with OmniSciDBClient(con=self._log_con, log_uri=self._log_con, close_on_exit=False, default_severity=self.default_severity) as log_con:
                 log_con.create_table(db_update_log_table)
 
     def _server_status(self):
@@ -449,7 +482,7 @@ class OmniSciDBClient:
             if error_count and error_count > 0:
                 severity = "ERROR"
             else:
-                severity = "INFO"
+                severity = self.default_severity
         msg = str(dict(
             cmd=cmd,
             time_s=round(tend - tstart, 2),
@@ -464,10 +497,8 @@ class OmniSciDBClient:
             error_count=error_count,
             **kwargs,
         ))
-        if severity == "ERROR":
-            logger().error(msg)
-        else:
-            logger().info(msg)
+
+        self.get_logger_severity(severity)(msg=msg)
         self._insert_log(
             start_time=tstart,
             src_paths=None,
@@ -515,7 +546,7 @@ class OmniSciDBClient:
             time_s = time() - tstart
             if time_s > 2.0:
                 # 2 seconds is sometimes a long time, but not sure this should be a warning
-                logi(cmd="query", time_s=round(time_s, 2), sql=sql)
+                self.default_logger(cmd="query", time_s=round(time_s, 2), sql=sql)
             return df
         except Exception as e:
             raise Exception(sql) from e
@@ -533,7 +564,7 @@ class OmniSciDBClient:
             sqlpp(sql)
         else:
             table_name = self._name(table_name)
-            logi(cmd=cmd, target=table_name, sql=sql)
+            self.default_logger(cmd=cmd, target=table_name, sql=sql)
 
             before = 0
             if table_name in self.con.list_tables():
@@ -850,7 +881,7 @@ class OmniSciDBClient:
 
     def _load_table_from_df(self, table_name, ddl, df, take_counts=True, update_key=None):
         sources = list(set(self._names(self.sources)))
-        logi(
+        self.default_logger(
             cmd="load_table_from_df",
             sources=sources,
             target=table_name,
@@ -936,7 +967,7 @@ class OmniSciDBClient:
         update_key=None,
     ):
         if sources:
-            logi(
+            self.default_logger(
                 cmd="load_table",
                 sources=list(set(self._names(sources))),
                 target=table_name,
@@ -999,7 +1030,7 @@ def col_renames(appendage, *cols):
     return [col.name(col.get_name() + appendage) for col in cols]
 
 
-def connect(con=None, close_on_exit=True):
+def connect(con=None, close_on_exit=True, default_severity=None):
     """
     Connect to OmniSciDB.
     For use with Prefect, though does not depend on the Prefect API itself (other than logging).
@@ -1035,11 +1066,11 @@ def connect(con=None, close_on_exit=True):
         OmniSciDBClient: with a Ibis con and Pyomnisci con.con, connected to OmniSciDB
     """
     if con is None or isinstance(con, str):
-        return OmniSciDBClient(uri=con, close_on_exit=close_on_exit)
+        return OmniSciDBClient(uri=con, close_on_exit=close_on_exit, default_severity=default_severity)
     elif isinstance(con, OmniSciDBClient):
         # return con
-        return OmniSciDBClient(_other=con, close_on_exit=False)
+        return OmniSciDBClient(_other=con, close_on_exit=False, default_severity=default_severity)
     elif isinstance(con, OmniSciDBBackend):
-        return OmniSciDBClient(con=con, close_on_exit=False)
+        return OmniSciDBClient(con=con, close_on_exit=False, default_severity=default_severity)
     else:
         raise Exception("Unrecognized type: %s" % type(con))
