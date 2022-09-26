@@ -24,7 +24,8 @@ dependencies:
   - gdal = 3.3.2
   # - gdal = 3.4.0
 
-  - prefect = 0.15.13
+  - prefect = 2.2.0
+  # - prefect = 0.15.13
   - dask-core = 2022.1.1
   - distributed = 2022.1.1
 
