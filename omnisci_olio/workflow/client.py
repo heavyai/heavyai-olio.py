@@ -2,7 +2,7 @@ import os
 import sys
 from time import time
 
-# import logging
+import logging
 import pathlib
 import hashlib
 import datetime
@@ -23,11 +23,16 @@ except:
     # pre-2.0 ibis and ibis_omniscidb
     from ibis_omniscidb import OmniSciDBClient as OmniSciDBBackend
 
+# Prefect's v1 logging used to use a Python logger when not in a Flow/Task context. In v2 it throws an exception.
+try:
+    LOGGER = prefect.get_run_logger()
+except RuntimeError:
+    LOGGER = logging.getLogger(__name__)
 
 def logger():
     # return logging.getLogger('default')
     # return prefect.context.get("logger")
-    return prefect.get_run_logger()
+    return LOGGER
 
 
 def log_debug(**kwargs):
