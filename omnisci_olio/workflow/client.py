@@ -653,7 +653,7 @@ class OmniSciDBClient:
         return self.query1(f"EXPLAIN {plan_type} " + self.to_sql(query))
 
     def show_create_table(self, tn):
-        self.query1(f"SHOW CREATE TABLE {tn}")
+        return self.query1(f"SHOW CREATE TABLE {tn}")
 
     def create_table(self, table, ddl=None, drop=False):
         if isinstance(table, sc.Table):
