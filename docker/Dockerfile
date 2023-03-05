@@ -1,6 +1,6 @@
 FROM rust:1.56.1 AS logscraper
 
-RUN cargo install --git https://github.com/omnisci/log-scraper
+RUN cargo install --git https://github.com/heavyai/log-scraper
 
 
 FROM mambaorg/micromamba:0.17.0
@@ -25,7 +25,7 @@ USER root
 RUN mkdir /src && chown $USERNAME:$USERNAME /src
 USER $USERNAME
 
-RUN mkdir -p /src/omnisci-olio.py
-COPY --chown=$USERNAME:$USERNAME . /src/omnisci-olio.py/
-RUN cd /src/omnisci-olio.py && \
+RUN mkdir -p /src/heavyai-olio.py
+COPY --chown=$USERNAME:$USERNAME . /src/heavyai-olio.py/
+RUN cd /src/heavyai-olio.py && \
     pip install -e .

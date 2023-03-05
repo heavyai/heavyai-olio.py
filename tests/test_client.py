@@ -1,10 +1,9 @@
-from omnisci_olio.workflow import connect
-import omnisci_olio.catalog as cat
-import pytest
+from heavyai_olio.workflow import connect
+import heavyai_olio.catalog as cat
 
 
-def test_omnisci_counties():
-    tname = "omnisci_counties"
+def test_heavyai_counties():
+    tname = "heavyai_counties"
     with connect() as con:
         t = con.table(tname)
         assert tname == t.name
@@ -12,7 +11,7 @@ def test_omnisci_counties():
 
 
 def test_cross_counties():
-    tname = "omnisci_counties"
+    tname = "heavyai_counties"
     with connect() as con:
         t = con.table(tname)
         u = t.view()

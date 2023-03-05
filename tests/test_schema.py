@@ -1,5 +1,5 @@
-import omnisci_olio.schema as sc
-from omnisci_olio.workflow import connect
+import heavyai_olio.schema as sc
+from heavyai_olio.workflow import connect
 
 
 test1_ddl = """\

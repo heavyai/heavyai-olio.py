@@ -1,9 +1,9 @@
 SHELL = /bin/sh
 .DEFAULT_GOAL=all
 
-DB_CONTAINER = omnisci_test
+DB_CONTAINER = heavyai_test
 PYTHON = 3.8
-OMNISCI_VERSION = v5.10.1
+OMNISCI_VERSION = v6.4.2
 # OMNISCI_VERSION = latest
 
 -include .env
@@ -15,11 +15,11 @@ develop:
 start:
 	docker run -d --rm --name ${DB_CONTAINER} \
 		--ipc=host \
-		-p ${OMNISCI_DB_PORT}:6274 \
-		-p ${OMNISCI_DB_PORT_HTTP}:6278 \
-		omnisci/core-os-cpu:${OMNISCI_VERSION} \
-		/omnisci/startomnisci --non-interactive \
-		--data /omnisci-storage/data --config /omnisci-storage/omnisci.conf \
+		-p ${HEAVYAI_DB_PORT}:6274 \
+		-p ${HEAVYAI_DB_PORT_HTTP}:6278 \
+		heavyai/core-os-cpu:${HEAVYAI_VERSION} \
+		/opt/heavyai/startheavy --non-interactive \
+		--data /var/lib/heavyai/storage --config /var/lib/heavyai/heavy.conf \
 		--enable-runtime-udf --enable-table-functions --allowed-import-paths='["/"]'
 .PHONY: start
 
@@ -27,11 +27,11 @@ start.gpu:
 	docker run -d --rm --name ${DB_CONTAINER} \
 		--ipc=host \
 		--gpus=0 \
-		-p ${OMNISCI_DB_PORT}:6274 \
-		-p ${OMNISCI_DB_PORT_HTTP}:6278 \
-		omnisci/core-os-cuda:${OMNISCI_VERSION} \
-		/omnisci/startomnisci --non-interactive \
-		--data /omnisci-storage/data --config /omnisci-storage/omnisci.conf \
+		-p ${HEAVYAI_DB_PORT}:6274 \
+		-p ${HEAVYAI_DB_PORT_HTTP}:6278 \
+		heavyai/heavyai-ee-cuda:${HEAVYAI_VERSION} \
+		/opt/heavyai/startheavy --non-interactive \
+		--data /var/lib/heavyai/storage --config /var/lib/heavyai/heavy.conf \
 		--enable-runtime-udf --enable-table-functions
 .PHONY: start.gpu
 
