@@ -227,6 +227,7 @@ class Geometry(Datatype):
 point4326ec32 = Geometry("POINT", 4326, 32)
 polygon4326ec32 = Geometry("POLYGON", 4326, 32)
 linestring4326ec32 = Geometry("LINESTRING", 4326, 32)
+multipoint4326ec32 = Geometry("MULTIPOINT", 4326, 32)
 multipolygon4326ec32 = Geometry("MULTIPOLYGON", 4326, 32)
 multilinestring4326ec32 = Geometry("MULTILINESTRING", 4326, 32)
 
