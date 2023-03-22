@@ -8,8 +8,8 @@ dependencies:
   - pytest
 
   - pandas
-
-  - pyarrow
+  - numpy=1.23.5
+  - pyarrow>=3.0.0
 
   # heavyai libraries
   - heavyai
