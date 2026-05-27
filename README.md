@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> As of 05/27/2026 this project has been deprecated. **heavyai-olio.py** is not maintained anymore.
+>
+
+
 # OmniSci-olio.py
 
 This is a collection of python functions to use with OmniSci DB.
