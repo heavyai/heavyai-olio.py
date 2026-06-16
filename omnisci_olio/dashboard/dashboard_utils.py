@@ -236,12 +236,11 @@ class DashboardUtils:
         """
         return self.get_dashboard_dict(dashboard_id).get('state', {})
 
-    def get_dasboards_projections(self, hostname=None, database=None) -> pd.DataFrame:
+    def get_dasboards_projections(self, hostname=None, schema_name=None) -> Optional[pd.DataFrame]:
         """
         Get dashboards projections.
         """
         L.info('Getting dashboards projections.')
-
         r = []
         for d in self.backend.con.get_dashboards():
             try:
@@ -253,32 +252,35 @@ class DashboardUtils:
                             c["dashboard_tab_id"] = tab.get("tabId")
                             c["dashboard_tab_name"] = tab.get("tabName")
                             c = dashboard_chart_projections(c)
+                            c["dashboard_id"] = d.dashboard_id
+
+                            c["error"] = None
                             r.append(c)
                 else:
                     c = dashboard_charts(dash)
                     if c is not None:
                         c = dashboard_chart_projections(c)
+                        c["dashboard_id"] = d.dashboard_id
+
+                        c["error"] = None
                         r.append(c)
             except Exception as e:
-                L.warning(f'get_dasboards_projections: exception occurs: {e}')
+                L.error(f'Exception occurs on get_dasboards_projections, {e}')
                 row = {}
                 row["dashboard_id"] = d.dashboard_id
-                # row['dashboard_title'] = d.dashboard_title
-                #             row['dashboard_table'] = dash.get('table')
-                #             row['dashboard_version'] = dash.get('version')
-                #             row['dashboard_owner'] = dash.get('owner')
                 row["error"] = str(e)
                 r.append(pd.DataFrame([row]))
-
-        df = pd.concat(r)
-        df["hostname"] = hostname if hostname else self.backend.host
-        df["db"] = (
-            database
-            if database
-            else self.backend.con._client.get_session_info(self.backend.con._session).database
-        )
-        L.info(f'projections df: \n{df.to_string()}')
-        return df
+        if len(r) > 0:
+            df = pd.concat(r)
+            df["hostname"] = hostname if hostname else self.backend.host
+            df["schema_name"] = (
+                schema_name
+                if schema_name
+                else self.backend.con._client.get_session_info(self.backend.con._session).database
+            )
+            return df
+        else:
+            return None
 
     def get_dashboards_dataframe(self) -> pd.DataFrame:
         """

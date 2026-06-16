@@ -1,11 +1,11 @@
 import os
 import re
 import pandas as pd
-import omnisci_olio.pymapd
 import logging
 import base64
 import json
 
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("omnisci_schema")
 
 
@@ -30,15 +30,14 @@ dtype_sizes = {
 
 
 def col_bytes(dtype, comp_param):
-    return int(comp_param / 8) if comp_param != 0 else dtype_sizes[dtype]
+    return int(comp_param / 8) if comp_param != 0 else dtype_sizes.get(dtype, -1)
 
 
 def columns(con, table):
     # s = t.schema()
-    # cols = con.con.get_table_details(t.name)
-    df = omnisci_olio.pymapd.table_details(con.con, table)
+    df = pd.DataFrame(con.con.get_table_details(table))
     df.rename(
-        columns={"name": "column_", "type": "datatype", "precision": "precision_"},
+        columns={"name": "column_name", "type": "datatype", "precision": "precision_"},
         inplace=True,
     )
 
@@ -47,50 +46,38 @@ def columns(con, table):
     return df
 
 
-def schema_columns(con, hostname=None, database=None):
+def schema_columns(con, hostname=None, schema_name=None):
     r = []
     for t in con.list_tables():
-        df = columns(con, t)
-        df["table_"] = t
+        try:
+            df = columns(con, t)
+        except Exception as e:
+            # log.warning('dashboard_id=%s: %s', d.dashboard_id, e)# exc_info=True)
+            df = pd.DataFrame(
+                [{"column_error": str(e), "nullable": False, "is_array": False}]
+            )
+        df["table_name"] = t
         r.append(df)
+    if len(r) == 0:
+        return None
     df = pd.concat(r)
     df["hostname"] = hostname if hostname else con.host
-    df["db"] = database if database else con.database().name
+    df["schema_name"] = (
+        schema_name
+        if schema_name
+        else con.con._client.get_session_info(con.con._session).database
+    )
     return df
 
 
-def load_table_columns(con, table_name="schema_columns"):
-    # df = pd.concat([columns(t) for t in con.list_tables()])
-    df = all_columns(con)
-    con.load_data(table_name, df)
-    t = con.table(table_name)
-    log.info(table_name, t.count().execute())
-    return t
-
-
-def schema_tables(con, hostname=None, database=None):
-    r = []
-    for table_name in con.list_tables():
-        ddl = pd.read_sql(f"show create table {table_name}", con.con)["Result"].values[
-            0
-        ]
-        with_props = [x for x in ddl.split("\n") if x.startswith("WITH (")]
-        tab_props = dict()
-        if len(with_props) > 0:
-            m = re.match(r"WITH \((.*)\).*", with_props[0])
-            if m:
-                props = m.groups(1)[0].replace("'", "").split(", ")
-                tab_props = {a[0]: a[1] for a in [p.split("=") for p in props]}
-        tab_props["table_"] = table_name
-        r.append(tab_props)
-    df = pd.DataFrame(r)
-    for c in ["MAX_ROWS", "FRAGMENT_SIZE"]:
-        df[c] = pd.to_numeric(df[c] if c in df else None)
-    if "VACUUM" not in df.columns:
-        df["VACUUM"] = "delayed"
-    df = df[["table_", "FRAGMENT_SIZE", "MAX_ROWS", "VACUUM"]]
+def schema_tables(con, hostname=None, schema_name=None):
+    df = pd.read_sql("show table details", con.con)
     df["hostname"] = hostname if hostname else con.host
-    df["db"] = database if database else con.database().name
+    df["schema_name"] = (
+        schema_name
+        if schema_name
+        else con.con._client.get_session_info(con.con._session).database
+    )
     return df
 
 
@@ -146,6 +133,8 @@ def chart_dict(dash, id, chart):
         "filterString",
     ]:
         r["chart_" + key] = chart.get(key)
+        if chart.get(key) and len(chart.get(key)) > 32767:
+            r["chart_" + key] = chart.get(key)[:32767]
 
     # r['chart_keys'] = chart.keys()
     # ['dataSource', 'autoSize', 'areFiltersInverse', 'cap', 'renderArea', 'color', 'colorDomain', 'dataSelections', 'selectedLayerId', 'manualPrimaryMeasureDomainMin', 'manualPrimaryMeasureDomainMax', 'manualSecondaryMeasureDomainMin', 'manualSecondaryMeasureDomainMax', 'barColorScheme', 'measureColorScheme', 'vegaSortColumn', 'binSettings', 'densityAccumulatorEnabled', 'dimensions', 'elasticX', 'elasticY', 'filters', 'geoJson', 'loading', 'measures', 'rangeChartEnabled', 'rangeFilter', 'savedColors', 'sortColumn', 'ticks', 'title', 'type', 'showOther', 'showNullDimensions', 'markTypes', 'multiSources', 'legendCollapsed', 'showAbsoluteValues', 'showPercentValues', 'showPercentValuesInPopup', 'showAllOthers', 'hasError', 'isNotDc', 'hoverSelectedColumns', 'width', 'height', 'isLoadingData', 'filterString', 'data', 'yAxisLabel', 'y2AxisLabel', 'basemap', 'numberOfGroups']
@@ -195,14 +184,18 @@ def dashboard_chart_projections(charts):
     projs = projs[projs["projections"].notnull()]
     projs["project_table"] = projs["projections"].apply(lambda x: x[0])
     projs["project_aggregation"] = projs["projections"].apply(lambda x: x[1])
-    projs["project_column"] = projs["projections"].apply(lambda x: x[2])
-    projs["project_custom"] = projs["projections"].apply(lambda x: x[3])
+    projs["project_column"] = projs["projections"].apply(
+        lambda x: x[2][:32767] if x[2] else None
+    )
+    projs["project_custom"] = projs["projections"].apply(
+        lambda x: x[3][:32767] if x[3] else None
+    )
     del projs["index"]
     del projs["projections"]
     return projs
 
 
-def dashboard_projections(con, hostname=None, database=None):
+def dashboard_projections(con, hostname=None, schema_name=None):
     r = []
     for d in con.con.get_dashboards():
         try:
@@ -214,11 +207,17 @@ def dashboard_projections(con, hostname=None, database=None):
                         c["dashboard_tab_id"] = tab.get("tabId")
                         c["dashboard_tab_name"] = tab.get("tabName")
                         c = dashboard_chart_projections(c)
+                        c["dashboard_id"] = d.dashboard_id
+
+                        c["error"] = None
                         r.append(c)
             else:
                 c = dashboard_charts(dash)
                 if c is not None:
                     c = dashboard_chart_projections(c)
+                    c["dashboard_id"] = d.dashboard_id
+
+                    c["error"] = None
                     r.append(c)
         except Exception as e:
             # log.warning('dashboard_id=%s: %s', d.dashboard_id, e)# exc_info=True)
@@ -230,12 +229,180 @@ def dashboard_projections(con, hostname=None, database=None):
             #             row['dashboard_owner'] = dash.get('owner')
             row["error"] = str(e)
             r.append(pd.DataFrame([row]))
+    if len(r) > 0:
+        df = pd.concat(r)
+        # df['dashboard_id'] = pd.to_numeric(df['dashboard_id'])
+        df["hostname"] = hostname if hostname else con.host
+        df["schema_name"] = (
+            schema_name
+            if schema_name
+            else con.con._client.get_session_info(con.con._session).database
+        )
+        return df
+    else:
+        return None
 
-    df = pd.concat(r)
-    df["hostname"] = hostname if hostname else con.host
-    df["db"] = (
-        database
-        if database
-        else con.con._client.get_session_info(con.con._session).database
-    )
-    return df
+
+def load_omnisci_schema(
+    src_con, con, hostname=None, schema_name=None, drop=False, load_dashboards=True
+):
+    column_tn = "schema_column"
+    table_tn = "schema_table"
+    tab_col_join_cols = ["hostname", "schema_name", "table_name"]
+    tc_vn = "schema_tables_column"
+    dp_tn = "schema_dashboard_projection"
+    dp_vn = "schema_dashboard_projection_v"
+
+    if drop:
+        con.drop_table(column_tn, force=True)
+        con.drop_table(table_tn, force=True)
+        con.drop_view(tc_vn, force=True)
+        if load_dashboards:
+            con.drop_table(dp_tn, force=True)
+            con.drop_view(dp_vn, force=True)
+
+    # CREATE TABLES
+    create_tables = {
+        column_tn: f"""CREATE TABLE {column_tn} (
+            column_name TEXT ENCODING DICT(32),
+            datatype TEXT ENCODING DICT(32),
+            nullable BOOLEAN,
+            precision_ BIGINT,
+            scale BIGINT,
+            comp_param BIGINT,
+            encoding TEXT ENCODING DICT(32),
+            is_array BOOLEAN,
+            bytes BIGINT,
+            table_name TEXT ENCODING DICT(32),
+            column_error TEXT ENCODING DICT(32),
+            hostname TEXT ENCODING DICT(32),
+            schema_name TEXT ENCODING DICT(16))
+        """,
+        table_tn: f"""CREATE TABLE {table_tn} (
+            table_id BIGINT,
+            table_name TEXT ENCODING DICT(32),
+            column_count BIGINT,
+            is_sharded_table BIGINT,
+            shard_count BIGINT,
+            max_rows BIGINT,
+            fragment_size BIGINT,
+            max_rollback_epochs BIGINT,
+            min_epoch BIGINT,
+            max_epoch BIGINT,
+            min_epoch_floor BIGINT,
+            max_epoch_floor BIGINT,
+            metadata_file_count BIGINT,
+            total_metadata_file_size BIGINT,
+            total_metadata_page_count BIGINT,
+            total_free_metadata_page_count DOUBLE,
+            data_file_count BIGINT,
+            total_data_file_size BIGINT,
+            total_data_page_count BIGINT,
+            total_free_data_page_count DOUBLE,
+            hostname TEXT ENCODING DICT(32),
+            schema_name TEXT ENCODING DICT(16))
+        """,
+        dp_tn: f"""CREATE TABLE {dp_tn} (
+            dashboard_id INT,
+            dashboard_title TEXT ENCODING DICT(32),
+            dashboard_table TEXT ENCODING DICT(32),
+            dashboard_version TEXT ENCODING DICT(8),
+            dashboard_owner TEXT ENCODING DICT(16),
+            chart_id TEXT ENCODING DICT(32),
+            chart_table TEXT ENCODING DICT(32),
+            chart_title TEXT ENCODING DICT(32),
+            chart_type TEXT ENCODING DICT(16),
+            chart_dataSelection TEXT ENCODING DICT(32),
+            chart_filters TEXT ENCODING DICT(32),
+            chart_areFiltersInverse TEXT ENCODING DICT(32),
+            chart_rangeFileter TEXT ENCODING DICT(32),
+            chart_filterString TEXT ENCODING DICT(32),
+            project_table TEXT ENCODING DICT(32),
+            project_aggregation TEXT ENCODING DICT(32),
+            project_column TEXT ENCODING DICT(32),
+            project_custom TEXT ENCODING DICT(32),
+            dashboard_tab_id TEXT ENCODING DICT(32),
+            dashboard_tab_name TEXT ENCODING DICT(32),
+            error TEXT ENCODING DICT(32),
+            hostname TEXT ENCODING DICT(32),
+            schema_name TEXT ENCODING DICT(16))
+        """,
+    }
+    for tn, ct in create_tables.items():
+        if not con.exists_table(tn):
+            con.con.execute(ct)
+
+    df = schema_columns(src_con, hostname=hostname, schema_name=schema_name)
+    tab = None
+    if df is not None:
+        col = load_table(con, column_tn, df)
+
+        df = schema_tables(src_con, hostname=hostname, schema_name=schema_name)
+        tab = load_table(con, table_tn, df)
+
+        if not con.exists_table(tc_vn):
+            join = tab.join(
+                col, predicates=[(tab[c] == col[c]) for c in tab_col_join_cols]
+            )
+            sel = join.select(
+                [tab[c] for c in tab_col_join_cols]
+                + [tab[c] for c in tab.columns if c not in tab_col_join_cols]
+                + [col[c] for c in col.columns if c not in tab_col_join_cols]
+            )
+            con.create_view(tc_vn, sel)
+
+    if load_dashboards and tab is not None:
+        dp = con.table(dp_tn)
+        df = dashboard_projections(src_con, hostname=hostname, schema_name=schema_name)
+        if df is not None:
+            dp = load_table(con, dp_tn, df)
+
+            if not con.exists_table(dp_vn):
+                join_pc = dp.inner_join(
+                    col,
+                    (col.hostname == dp.hostname)
+                    & (col.schema_name == dp.schema_name)
+                    & (col.table_name == dp.project_table),
+                )
+                join_pct = join_pc.inner_join(
+                    tab, [(tab[c] == col[c]) for c in tab_col_join_cols]
+                )
+                sel = join_pct.select(
+                    [dp]
+                    + [tab[c] for c in tab.columns if c not in tab_col_join_cols]
+                    + [col[c] for c in col.columns if c not in tab_col_join_cols]
+                )
+                con.create_view(dp_vn, sel)
+
+
+def load_table(con, tn, df):
+    t = con.table(tn)
+    for c in t.columns:
+        if c not in df:
+            df[c] = None
+    df = df[t.columns]
+    df = t.schema().apply_to(df)
+    con.load_data(tn, df)
+    log.info("load_table %s %s", tn, t.count().execute())
+    return t
+
+
+def databases(con):
+    return [d.db_name for d in con.con._client.get_databases(con.con._session)]
+
+
+def load_omnisci_schema_all(
+    src_con, tgt_con, hostname=None, load_dashboards=True, drop=False
+):
+    for schema_name in databases(src_con):
+        log.info("load_omnisci_schema_all %s", schema_name)
+        src_con.con._client.switch_database(src_con.con._session, schema_name)
+        load_omnisci_schema(
+            src_con,
+            tgt_con,
+            hostname=hostname,
+            schema_name=schema_name,
+            drop=drop,
+            load_dashboards=load_dashboards,
+        )
+        drop = False  # only the first time
